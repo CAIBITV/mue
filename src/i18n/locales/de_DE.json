@@ -174,7 +174,9 @@
               "subtitle": "Wählen Sie eine Zeitzone aus der Liste anstelle der automatischen Vorgabe Ihres Computers",
               "title": "Zeitzone"
             },
-            "title": "Erweitert"
+            "title": "Erweitert",
+            "custom_logo": "Custom logo",
+            "custom_logo_subtitle": "Use your own image URL to replace the sidebar logo."
           },
           "appearance": {
             "accessibility": {

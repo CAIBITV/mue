@@ -432,6 +432,8 @@
               "cancel": "Cancel"
             },
             "customisation": "Customisation",
+            "custom_logo": "Custom logo",
+            "custom_logo_subtitle": "Use your own image URL to replace the sidebar logo.",
             "custom_css": "Custom CSS",
             "custom_css_subtitle": "Make Mue's styling customised to you with Cascading Style Sheets (CSS).",
             "custom_js": "Custom JS",

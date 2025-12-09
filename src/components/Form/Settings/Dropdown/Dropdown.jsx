@@ -5,9 +5,11 @@ import { InputLabel, MenuItem, FormControl, Select } from '@mui/material';
 import EventBus from 'utils/eventbus';
 
 const Dropdown = memo((props) => {
-  const [value, setValue] = useState(
+  const isControlled = props.value !== undefined;
+  const [internalValue, setInternalValue] = useState(
     localStorage.getItem(props.name) || props.items[0].value,
   );
+  const value = isControlled ? props.value : internalValue;
   const dropdown = useRef();
 
   const onChange = useCallback((e) => {
@@ -19,7 +21,9 @@ const Dropdown = memo((props) => {
 
     variables.stats.postEvent('setting', `${props.name} from ${value} to ${newValue}`);
 
-    setValue(newValue);
+    if (!isControlled) {
+      setInternalValue(newValue);
+    }
 
     if (!props.noSetting) {
       localStorage.setItem(props.name, newValue);
@@ -38,7 +42,7 @@ const Dropdown = memo((props) => {
     }
 
     EventBus.emit('refresh', props.category);
-  }, [value, props]);
+  }, [value, props, isControlled]);
 
   const id = 'dropdown' + props.name;
   const label = props.label || '';

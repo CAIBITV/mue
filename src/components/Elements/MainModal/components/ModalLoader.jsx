@@ -1,8 +1,8 @@
 import variables from 'config/variables';
 
 const ModalLoader = () => (
-  <div style={{ display: 'flex', width: '100%', minHeight: '100%' }}>
-    <div className="modalSidebar">
+  <div className="modalTabShell">
+    <div className="modalSidebar modalSidebar--loader">
       <span className="mainTitle">Mue</span>
     </div>
     <div className="modalTabContent">

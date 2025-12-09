@@ -174,7 +174,9 @@
               "subtitle": "Kompüterinizdən avtomatik alınan saat qurşağı əvəzinə siyahıdan birini seçin",
               "title": "Saat Qurşağı"
             },
-            "title": "Ətraflı"
+            "title": "Ətraflı",
+            "custom_logo": "Custom logo",
+            "custom_logo_subtitle": "Use your own image URL to replace the sidebar logo."
           },
           "appearance": {
             "accessibility": {

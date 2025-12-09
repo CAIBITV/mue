@@ -174,7 +174,9 @@
               "subtitle": "Izberite časovni pas s seznama namesto samodejnega privzetega iz vašega računalnika",
               "title": "Časovni pas"
             },
-            "title": "Napredno"
+            "title": "Napredno",
+            "custom_logo": "Custom logo",
+            "custom_logo_subtitle": "Use your own image URL to replace the sidebar logo."
           },
           "appearance": {
             "accessibility": {

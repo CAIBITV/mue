@@ -33,6 +33,19 @@
   }
 }
 
+.searchEngineSelector {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchEngineIcon {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
 .searchComponents {
   position: absolute;
   top: 1rem;
@@ -48,19 +61,29 @@
 .searchDropdown {
   @extend %basic;
 
-  margin-top: 5px;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
   display: flex;
   flex-flow: column;
-  align-content: flex-start;
-  text-align: left;
-  font-size: 0.6em;
-  width: 200px;
-  transition: 0.5s;
+  width: 220px;
+  padding: 6px;
+  font-size: 0.8em;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
 
-  span {
-    padding: 0.5rem;
-    cursor: pointer;
+  .searchDropdownItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: inherit;
     border-radius: 12px;
+    padding: 0.6rem;
+    text-align: left;
+    cursor: pointer;
 
     &:hover {
       @include themed {
@@ -70,7 +93,8 @@
   }
 }
 
-.searchDropdownListActive {
+.searchDropdownListActive,
+.searchDropdownItem.searchDropdownListActive {
   @include themed {
     background: t($btn-backgroundHover);
   }
@@ -89,5 +113,145 @@
     100% {
       opacity: 1;
     }
+  }
+}
+
+.search-engines-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.search-engine-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  transition: 0.2s ease;
+
+  @include themed {
+    background: t($modal-sidebar);
+    border: 1px solid rgba(t($color), 0.08);
+  }
+
+  &:hover {
+    @include themed {
+      border-color: rgba(t($color), 0.3);
+    }
+  }
+
+  .btn-icon {
+    margin-left: auto;
+  }
+}
+
+.engine-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  object-fit: contain;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.05);
+
+  &.placeholder {
+    display: grid;
+    place-items: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+
+    @include themed {
+      background: rgba(t($color), 0.08);
+      color: t($color);
+    }
+  }
+}
+
+.engine-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+
+  .engine-name {
+    font-weight: 600;
+  }
+
+  .engine-url {
+    font-size: 0.85em;
+    word-break: break-all;
+
+    @include themed {
+      color: t($subColor);
+    }
+  }
+}
+
+.engine-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75em;
+
+  @include themed {
+    background: rgba(t($color), 0.08);
+    color: t($subColor);
+  }
+}
+
+.search-engine-empty {
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 0.9em;
+  text-align: center;
+
+  @include themed {
+    background: t($modal-sidebar);
+    color: t($subColor);
+  }
+}
+
+.search-engine-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .search-engine-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .search-engine-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    input {
+      border-radius: 12px;
+      padding: 10px 14px;
+      border: none;
+      outline: none;
+
+      @include themed {
+        background: t($modal-sidebar);
+        color: t($color);
+        box-shadow: 0 0 0 1px t($modal-sidebarActive);
+      }
+    }
+  }
+
+  .field-hint {
+    font-size: 0.8em;
+
+    @include themed {
+      color: t($subColor);
+    }
+  }
+
+  .search-engine-form-actions {
+    display: flex;
+    justify-content: flex-end;
   }
 }

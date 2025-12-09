@@ -174,7 +174,9 @@
               "subtitle": "اختر منطقة زمنية من القائمة بدلاً من الافتراضي التلقائي من جهازك",
               "title": "المنطقة الزمنية"
             },
-            "title": "متقدم"
+            "title": "متقدم",
+            "custom_logo": "Custom logo",
+            "custom_logo_subtitle": "Use your own image URL to replace the sidebar logo."
           },
           "appearance": {
             "accessibility": {

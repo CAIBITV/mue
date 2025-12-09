@@ -17,6 +17,7 @@ import { ResetModal, Button } from 'components/Elements';
 import { Header, Section, Row, Content, Action } from 'components/Layout/Settings';
 
 import time_zones from 'features/time/timezones.json';
+import EventBus from 'utils/eventbus';
 
 function AdvancedOptions() {
   const [resetModal, setResetModal] = useState(false);
@@ -159,6 +160,22 @@ function AdvancedOptions() {
             />
             <Action>
               <Text name="tabName" default={variables.getMessage('tabname')} category="other" />
+            </Action>
+          </Row>
+          <Row>
+            <Content
+              title={variables.getMessage('modals.main.settings.sections.advanced.custom_logo')}
+              subtitle={variables.getMessage(
+                'modals.main.settings.sections.advanced.custom_logo_subtitle',
+              )}
+            />
+            <Action>
+              <Text
+                name="customLogo"
+                category="customLogo"
+                placeholder="https://example.com/logo.png"
+                onChange={(value) => EventBus.emit('customLogoUpdated', value)}
+              />
             </Action>
           </Row>
           <Row>

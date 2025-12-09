@@ -174,7 +174,9 @@
               "subtitle": "Bilgisayarınızdan otomatik varsayılan yerine listeden bir saat dilimi seçin.",
               "title": "Saat Dilimi"
             },
-            "title": "Gelişmiş"
+            "title": "Gelişmiş",
+            "custom_logo": "Custom logo",
+            "custom_logo_subtitle": "Use your own image URL to replace the sidebar logo."
           },
           "appearance": {
             "accessibility": {

@@ -174,7 +174,9 @@
               "subtitle": "Виберіть часовий пояс зі списку замість автоматично встановленого на вашому комп'ютері",
               "title": "Часовий пояс"
             },
-            "title": "Додатково"
+            "title": "Додатково",
+            "custom_logo": "Custom logo",
+            "custom_logo_subtitle": "Use your own image URL to replace the sidebar logo."
           },
           "appearance": {
             "accessibility": {

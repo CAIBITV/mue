@@ -174,7 +174,9 @@
               "subtitle": "আপনার কম্পিউটার থেকে স্বয়ংক্রিয় ডিফল্টের পরিবর্তে তালিকা থেকে একটি টাইমজোন বেছে নিন",
               "title": "টাইম জোন"
             },
-            "title": "উন্নত"
+            "title": "উন্নত",
+            "custom_logo": "Custom logo",
+            "custom_logo_subtitle": "Use your own image URL to replace the sidebar logo."
           },
           "appearance": {
             "accessibility": {

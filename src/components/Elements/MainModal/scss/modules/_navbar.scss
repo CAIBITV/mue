@@ -1,6 +1,7 @@
 #modal {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: stretch;
   justify-content: flex-start;
 }
 

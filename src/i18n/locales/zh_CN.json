@@ -174,7 +174,9 @@
               "subtitle": "Choose a timezone from the list instead of the automatic default from your computer",
               "title": "时区"
             },
-            "title": "高级"
+            "title": "高级",
+            "custom_logo": "自定义 Logo",
+            "custom_logo_subtitle": "使用自己的图片 URL 替换侧边栏 Logo"
           },
           "appearance": {
             "accessibility": {
@@ -393,12 +395,50 @@
             "add_link": "Add Link",
             "additional": "Additional settings for quick links display and functions",
             "edit": "Edit",
+            "groups": {
+              "add": "新建分组",
+              "all": "全部",
+              "assign": "分配到分组",
+              "color": "分组颜色",
+              "create": "创建分组",
+              "delete": "删除分组",
+              "edit": "编辑分组",
+              "management": {
+                "subtitle": "管理快捷方式分组，点击分组标签可以筛选显示",
+                "title": "分组管理"
+              },
+              "name": "分组名称",
+              "name_placeholder": "例如：工作",
+              "no_groups": "暂无分组",
+              "save": "保存分组",
+              "select": "选择分组"
+            },
+            "layout": {
+              "cols": "列数",
+              "gap": "图标间距",
+              "items_per_page": "每页显示数量",
+              "rows": "行数",
+              "shape": "图标形状",
+              "shape_options": {
+                "circle": "圆形",
+                "square": "方形"
+              },
+              "subtitle": "自定义快捷方式的网格布局、分页和视觉样式",
+              "title": "布局设置"
+            },
             "no_quicklinks": "No quicklinks",
             "open_new": "在新标签页打开",
             "options": {
               "icon": "Icon",
               "metro": "Metro",
               "text_only": "Text Only"
+            },
+            "pagination": {
+              "next": "下一页",
+              "of": "共",
+              "page": "第",
+              "pages": "页",
+              "previous": "上一页"
             },
             "style": "Style",
             "styling": "Quick Links Styling",
@@ -434,8 +474,26 @@
             "autocomplete": "搜索联想",
             "autocomplete_provider": "联想功能提供引擎",
             "autocomplete_provider_subtitle": "Search engine to use for autocomplete dropdown results",
+            "chrome_policy_warning": "由于 Chrome 政策限制，搜索引擎现在由您的浏览器默认设置控制。您可以添加自定义搜索引擎并在搜索框旁切换。",
             "custom": "自定义搜索链接",
             "dropdown": "搜索框左侧显示搜索引擎选择框",
+            "engine_management": {
+              "add": "添加自定义搜索引擎",
+              "add_modal_title": "添加自定义搜索引擎",
+              "builtin": "内置",
+              "empty": "暂无可用搜索引擎，请先添加自定义搜索引擎。",
+              "fields": {
+                "icon": "图标 URL（可选）",
+                "name": "搜索引擎名称",
+                "name_placeholder": "例如：My Search",
+                "url": "搜索 URL",
+                "url_hint": "请使用 {query} 作为关键词占位符，例如：https://example.com?q={query}"
+              },
+              "remove": "删除搜索引擎",
+              "save": "保存搜索引擎",
+              "subtitle": "查看当前搜索引擎列表并添加自定义引擎",
+              "title": "搜索引擎管理"
+            },
             "focus": "Focus on tab open",
             "search_engine": "搜索引擎",
             "search_engine_subtitle": "Choose search engine to use in the search bar",

@@ -174,7 +174,9 @@
               "subtitle": "Choisissez un fuseau horaire dans la liste au lieu du défaut automatique de votre ordinateur",
               "title": "Fuseau horaire"
             },
-            "title": "Avancé"
+            "title": "Avancé",
+            "custom_logo": "Custom logo",
+            "custom_logo_subtitle": "Use your own image URL to replace the sidebar logo."
           },
           "appearance": {
             "accessibility": {

@@ -10,7 +10,7 @@ const isProd = process.env.NODE_ENV === 'production';
 
 const prepareBuilds = () => ({
   name: 'prepareBuilds',
-  buildEnd() {
+  closeBundle() {
     if (isProd) {
       // make directories if not exist
       fs.mkdirSync(path.resolve(__dirname, './build'), { recursive: true });

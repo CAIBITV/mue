@@ -174,7 +174,9 @@
               "subtitle": "Pasirinkite laiko juostą iš sąrašo vietoj automatinio nustatymo iš jūsų kompiuterio",
               "title": "Laiko juosta"
             },
-            "title": "Išplėstiniai"
+            "title": "Išplėstiniai",
+            "custom_logo": "Custom logo",
+            "custom_logo_subtitle": "Use your own image URL to replace the sidebar logo."
           },
           "appearance": {
             "accessibility": {

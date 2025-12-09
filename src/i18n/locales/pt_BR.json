@@ -174,7 +174,9 @@
               "subtitle": "Escolha um fuso horário na lista em vez do padrão automático do seu computador",
               "title": "Fuso horário"
             },
-            "title": "Avançado"
+            "title": "Avançado",
+            "custom_logo": "Custom logo",
+            "custom_logo_subtitle": "Use your own image URL to replace the sidebar logo."
           },
           "appearance": {
             "accessibility": {

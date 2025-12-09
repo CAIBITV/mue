@@ -174,7 +174,9 @@
               "subtitle": "Avtomatik olaraq kompüterinizdən alınan defolt dəyər yerinə siyahıdan bir saat qurşağı seçin",
               "title": "Saat Qurşağı"
             },
-            "title": "Qabaqcıl"
+            "title": "Qabaqcıl",
+            "custom_logo": "Custom logo",
+            "custom_logo_subtitle": "Use your own image URL to replace the sidebar logo."
           },
           "appearance": {
             "accessibility": {

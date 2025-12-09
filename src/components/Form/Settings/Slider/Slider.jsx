@@ -7,15 +7,22 @@ import { MdRefresh } from 'react-icons/md';
 import EventBus from 'utils/eventbus';
 
 const SliderComponent = memo((props) => {
-  const [value, setValue] = useState(localStorage.getItem(props.name) || props.default);
+  const shouldPersist = props.persistValue !== false;
+  const isControlled = props.value !== undefined;
+  const [internalValue, setInternalValue] = useState(
+    localStorage.getItem(props.name) || props.default,
+  );
+  const resolvedValue = Number(isControlled ? props.value : internalValue);
 
   const handleChange = useCallback((e, text) => {
-    let newValue = e.target.value;
-    newValue = Number(newValue);
+    const rawValue = e?.target?.value ?? e;
+    let newValue = Number(rawValue);
 
     if (text) {
       if (newValue === '') {
-        setValue(0);
+        if (!isControlled) {
+          setInternalValue(0);
+        }
         return;
       }
 
@@ -28,8 +35,17 @@ const SliderComponent = memo((props) => {
       }
     }
 
-    localStorage.setItem(props.name, newValue);
-    setValue(newValue);
+    if (!isControlled) {
+      setInternalValue(newValue);
+    }
+
+    if (shouldPersist && props.name) {
+      localStorage.setItem(props.name, newValue);
+    }
+
+    if (props.onChange) {
+      props.onChange(newValue);
+    }
 
     if (props.element) {
       if (!document.querySelector(props.element)) {
@@ -39,7 +55,7 @@ const SliderComponent = memo((props) => {
     }
 
     EventBus.emit('refresh', props.category);
-  }, [props]);
+  }, [props, isControlled, shouldPersist]);
 
   const resetItem = useCallback(() => {
     handleChange({
@@ -54,14 +70,14 @@ const SliderComponent = memo((props) => {
     <>
       <span className={'sliderTitle'}>
         {props.title}
-        <span>{Number(value)}</span>
+        <span>{Number(resolvedValue)}</span>
         <span className="link" onClick={resetItem}>
           <MdRefresh />
           {variables.getMessage('modals.main.settings.buttons.reset')}
         </span>
       </span>
       <Slider
-        value={Number(value)}
+        value={Number(resolvedValue)}
         onChange={handleChange}
         valueLabelDisplay="auto"
         default={Number(props.default)}

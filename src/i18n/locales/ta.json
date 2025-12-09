@@ -174,7 +174,9 @@
               "subtitle": "உங்கள் கணினியிலிருந்து தானியங்கி இயல்புநிலைக்கு பதிலாக பட்டியலிலிருந்து நேர மண்டலத்தைத் தேர்வுசெய்க",
               "title": "நேர மண்டலம்"
             },
-            "title": "மேம்பட்ட"
+            "title": "மேம்பட்ட",
+            "custom_logo": "Custom logo",
+            "custom_logo_subtitle": "Use your own image URL to replace the sidebar logo."
           },
           "appearance": {
             "accessibility": {

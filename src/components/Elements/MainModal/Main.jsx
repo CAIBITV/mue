@@ -1,11 +1,15 @@
 import { Suspense, lazy, useState, memo, useEffect } from 'react';
 import variables from 'config/variables';
+import { MdExpandMore } from 'react-icons/md';
 
 import './scss/index.scss';
 import ModalLoader from './components/ModalLoader';
 import ModalTopBar from './components/ModalTopBar';
-import { TAB_TYPES } from './constants/tabConfig';
+import { Button } from 'components/Elements';
+import { TAB_TYPES, NAVBAR_BUTTONS, getIconComponent } from './constants/tabConfig';
 import { updateHash, parseDeepLink } from 'utils/deepLinking';
+import mueAboutIcon from 'assets/icons/mue_about.png';
+import { SETTINGS_SECTION_LABELS } from 'features/misc/constants/settingsSections';
 
 const Settings = lazy(() => import('../../../features/misc/views/Settings'));
 const Library = lazy(() => import('../../../features/misc/views/Library'));
@@ -26,6 +30,10 @@ function MainModal({ modalClose, deepLinkData }) {
   const [productView, setProductView] = useState(null);
   const [resetDiscoverToAll, setResetDiscoverToAll] = useState(false);
   const [navigationTrigger, setNavigationTrigger] = useState(null);
+  const [customLogo, setCustomLogo] = useState(() => localStorage.getItem('customLogo') || '');
+  const [expandedItems, setExpandedItems] = useState(() => ({
+    [TAB_TYPES.SETTINGS]: true,
+  }));
 
   // Clear product view when changing tabs
   useEffect(() => {
@@ -106,6 +114,24 @@ function MainModal({ modalClose, deepLinkData }) {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [currentTab]);
 
+  useEffect(() => {
+    const handleStorageLogo = () => {
+      setCustomLogo(localStorage.getItem('customLogo') || '');
+    };
+
+    const handleCustomLogoUpdated = (event) => {
+      setCustomLogo(event.detail || '');
+    };
+
+    window.addEventListener('storage', handleStorageLogo);
+    document.addEventListener('customLogoUpdated', handleCustomLogoUpdated);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageLogo);
+      document.removeEventListener('customLogoUpdated', handleCustomLogoUpdated);
+    };
+  }, []);
+
   const handleChangeTab = (newTab) => {
     setCurrentTab(newTab);
     // Update URL hash when tab changes
@@ -165,33 +191,159 @@ function MainModal({ modalClose, deepLinkData }) {
   const canGoForward = true;
 
   const TabComponent = TAB_COMPONENTS[currentTab] || Settings;
+  const settingsChildren = SETTINGS_SECTION_LABELS.map(({ labelKey, name }) => {
+    const label = variables.getMessage(labelKey);
+    const Icon = getIconComponent(label, variables);
+    return {
+      id: name,
+      label,
+      Icon,
+    };
+  });
+
+  const sidebarItems = NAVBAR_BUTTONS.map((item) => {
+    if (item.tab !== TAB_TYPES.SETTINGS) {
+      return item;
+    }
+
+    return {
+      ...item,
+      collapsible: true,
+      children: settingsChildren,
+    };
+  });
+
+  const handleToggleCollapse = (tab) => {
+    setExpandedItems((prev) => ({
+      ...prev,
+      [tab]: !prev[tab],
+    }));
+  };
+
+  const handleSidebarSectionSelect = (label) => {
+    if (currentTab !== TAB_TYPES.SETTINGS) {
+      handleChangeTab(TAB_TYPES.SETTINGS);
+    }
+
+    setCurrentSection(label);
+  };
+
+  const logoSource = customLogo && customLogo.trim() ? customLogo : mueAboutIcon;
 
   return (
-    <div className="frame">
-      <ModalTopBar
-        currentTab={currentTab}
-        currentSection={currentSection}
-        productView={productView}
-        onTabChange={handleChangeTab}
-        onClose={modalClose}
-        onBack={handleBack}
-        onForward={handleForward}
-        canGoBack={canGoBack}
-        canGoForward={canGoForward}
-      />
-      <Suspense fallback={<ModalLoader />}>
-        <TabComponent
-          key={currentTab}
-          changeTab={handleChangeTab}
-          deepLinkData={deepLinkData}
-          currentTab={currentTab}
-          onSectionChange={handleSectionChange}
-          onProductView={handleProductView}
-          resetToAll={resetDiscoverToAll}
-          onResetToAll={handleResetDiscoverToAll}
-          navigationTrigger={navigationTrigger}
-        />
-      </Suspense>
+    <div className="frame mainModalFrame">
+      <div className="mainModalLayout">
+        <aside className="mainModalSidebar" aria-label="Main modal sidebar navigation">
+          <div className="mainModalSidebar__branding">
+            <img
+              src={logoSource}
+              alt="Mue"
+              className="mainModalSidebar__logo"
+              draggable={false}
+            />
+          </div>
+          <div className="mainModalSidebar__tabs">
+            {sidebarItems.map(({ tab, icon: Icon, messageKey, collapsible, children }) => {
+              const isExpanded = collapsible ? expandedItems[tab] : true;
+              const hasChildren = collapsible && children?.length > 0;
+              const label = variables.getMessage(messageKey);
+
+              return (
+                <div
+                  key={tab}
+                  className={`sidebarNavGroup${hasChildren ? ' sidebarNavGroup--collapsible' : ''}`}
+                >
+                  <Button
+                    type="navigation"
+                    onClick={() => handleChangeTab(tab)}
+                    active={currentTab === tab}
+                    icon={<Icon />}
+                    label={
+                      <span className="sidebarButtonLabel">
+                        <span className="sidebarButtonText">{label}</span>
+                        {hasChildren ? (
+                          <span
+                            className={`sidebarButtonCaret${isExpanded ? ' expanded' : ''}`}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleToggleCollapse(tab);
+                            }}
+                            role="button"
+                            aria-label="Toggle submenu"
+                            tabIndex={0}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                handleToggleCollapse(tab);
+                              }
+                            }}
+                          >
+                            <MdExpandMore />
+                          </span>
+                        ) : null}
+                      </span>
+                    }
+                  />
+                  {hasChildren ? (
+                    <div
+                      className={`mainModalSidebar__children${
+                        isExpanded ? ' expanded' : ' collapsed'
+                      }`}
+                    >
+                      {children.map(({ id, label: childLabel, Icon: ChildIcon }) => {
+                        const isChildActive =
+                          currentTab === TAB_TYPES.SETTINGS && currentSection === childLabel;
+
+                        return (
+                          <button
+                            key={id}
+                            className={`mainModalSidebar__childButton${
+                              isChildActive ? ' mainModalSidebar__childButton--active' : ''
+                            }`}
+                            onClick={() => handleSidebarSectionSelect(childLabel)}
+                          >
+                            {ChildIcon ? <ChildIcon /> : null}
+                            <span>{childLabel}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </aside>
+        <div className="mainModalContent">
+          <ModalTopBar
+            currentTab={currentTab}
+            currentSection={currentSection}
+            productView={productView}
+            onClose={modalClose}
+            onBack={handleBack}
+            onForward={handleForward}
+            canGoBack={canGoBack}
+            canGoForward={canGoForward}
+          />
+          <div className="modalContentArea">
+            <Suspense fallback={<ModalLoader />}>
+              <TabComponent
+                key={currentTab}
+                changeTab={handleChangeTab}
+                deepLinkData={deepLinkData}
+                currentTab={currentTab}
+                onSectionChange={handleSectionChange}
+                onProductView={handleProductView}
+                resetToAll={resetDiscoverToAll}
+                onResetToAll={handleResetDiscoverToAll}
+                navigationTrigger={navigationTrigger}
+                activeSection={currentSection}
+              />
+            </Suspense>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

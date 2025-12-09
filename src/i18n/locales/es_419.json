@@ -174,7 +174,9 @@
               "subtitle": "Choose a timezone from the list instead of the automatic default from your computer",
               "title": "Zona horaria"
             },
-            "title": "Avanzado"
+            "title": "Avanzado",
+            "custom_logo": "Custom logo",
+            "custom_logo_subtitle": "Use your own image URL to replace the sidebar logo."
           },
           "appearance": {
             "accessibility": {

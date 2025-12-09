@@ -174,7 +174,9 @@
               "subtitle": "Vali loendist ajavöönd arvuti automaatse vaikeväärtuse asemel",
               "title": "Ajavöönd"
             },
-            "title": "Täpsemad seaded"
+            "title": "Täpsemad seaded",
+            "custom_logo": "Custom logo",
+            "custom_logo_subtitle": "Use your own image URL to replace the sidebar logo."
           },
           "appearance": {
             "accessibility": {

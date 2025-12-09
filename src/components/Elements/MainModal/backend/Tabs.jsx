@@ -1,11 +1,16 @@
 import variables from 'config/variables';
 import { useState, useEffect } from 'react';
-import Tab from './Tab';
 import ReminderInfo from '../components/ReminderInfo';
 import ErrorBoundary from '../../../../features/misc/modals/ErrorBoundary';
 import { TAB_TYPES } from '../constants/tabConfig';
 
-const Tabs = ({ children, navbar = false, currentTab: activeTab, onSectionChange, resetToFirst }) => {
+const Tabs = ({
+  children,
+  currentTab: activeTab,
+  onSectionChange,
+  resetToFirst,
+  activeSection,
+}) => {
   const [currentTab, setCurrentTab] = useState(children[0]?.props.label);
   const [currentName, setCurrentName] = useState(children[0]?.props.name);
   const [showReminder, setShowReminder] = useState(localStorage.getItem('showReminder') === 'true');
@@ -42,31 +47,35 @@ const Tabs = ({ children, navbar = false, currentTab: activeTab, onSectionChange
     }
   }, [resetToFirst]);
 
+  useEffect(() => {
+    if (!activeSection || activeTab !== TAB_TYPES.SETTINGS) {
+      return;
+    }
+
+    if (activeSection === currentTab) {
+      return;
+    }
+
+    const matchedTab = children.find((tab) => tab.props.label === activeSection);
+
+    if (matchedTab) {
+      setCurrentTab(activeSection);
+      setCurrentName(matchedTab.props.name);
+      if (onSectionChange) {
+        onSectionChange(activeSection);
+      }
+    }
+  }, [activeSection, activeTab, children, currentTab, onSectionChange]);
+
   const handleHideReminder = () => {
     localStorage.setItem('showReminder', 'false');
     setShowReminder(false);
   };
 
-  // Only show sidebar for Settings tab
-  const showSidebar = activeTab === TAB_TYPES.SETTINGS;
-
   return (
-    <div style={{ display: 'flex', width: '100%', minHeight: '100%' }}>
-      {showSidebar ? (
-        <div className="modalSidebar">
-          {children.map((tab, index) => (
-            <Tab
-              key={index}
-              currentTab={currentTab}
-              label={tab.props.label}
-              onClick={(nextTab) => handleTabClick(nextTab, tab.props.name)}
-              navbarTab={navbar}
-            />
-          ))}
-          <ReminderInfo isVisible={showReminder} onHide={handleHideReminder} />
-        </div>
-      ) : null}
-      <div className="modalTabContent" style={{ marginLeft: showSidebar ? '1rem' : '0' }}>
+    <div className="modalTabShell">
+      <div className="modalTabContent">
+        {showReminder && <ReminderInfo isVisible={showReminder} onHide={handleHideReminder} />}
         {children.map((tab, index) => {
           if (tab.props.label !== currentTab) {
             return null;

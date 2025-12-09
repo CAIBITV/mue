@@ -1,15 +1,24 @@
 import variables from 'config/variables';
-import { useState, useEffect, useRef } from 'react';
-import { MdAddLink, MdLinkOff } from 'react-icons/md';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { MdAddLink, MdLinkOff, MdEdit, MdDelete, MdAdd, MdClose } from 'react-icons/md';
 import { arrayMove } from '@dnd-kit/sortable';
 import { Header, Row, Content, Action, PreferencesWrapper } from 'components/Layout/Settings';
-import { Checkbox, Dropdown } from 'components/Form/Settings';
-import { Button } from 'components/Elements';
+import { Checkbox, Dropdown, Slider } from 'components/Form/Settings';
+import { Button, Tooltip } from 'components/Elements';
 import Modal from 'react-modal';
 
 import { AddModal } from 'components/Elements/AddModal';
 import { SortableList } from './components';
 import { readQuicklinks } from './utils/quicklinksUtils';
+import {
+  getGroups,
+  addGroup,
+  updateGroup,
+  removeGroup,
+  getQuicklinksLayout,
+  setQuicklinksLayout,
+  DEFAULT_QUICKLINKS_LAYOUT,
+} from 'utils/quicklinks/quicklinkGroups';
 
 import EventBus from 'utils/eventbus';
 import { getTitleFromUrl, isValidUrl } from 'utils/links';
@@ -22,9 +31,27 @@ const QuickLinksOptions = () => {
   const [edit, setEdit] = useState(false);
   const [editData, setEditData] = useState('');
   const [enabled, setEnabled] = useState(localStorage.getItem('quicklinksenabled') !== 'false');
+  const [groups, setGroups] = useState(() => getGroups());
+  const [showGroupModal, setShowGroupModal] = useState(false);
+  const [groupForm, setGroupForm] = useState({ name: '', color: '#888888' });
+  const [activeGroup, setActiveGroup] = useState(null);
+  const [layoutConfig, setLayoutConfig] = useState(() => getQuicklinksLayout());
 
   const quicklinksContainer = useRef();
   const silenceEventRef = useRef(false);
+  const DEFAULT_GROUP_KEY = 'all';
+  const updateLayoutConfig = useCallback((updater) => {
+    setLayoutConfig((prev) => {
+      const nextState =
+        typeof updater === 'function' ? updater(prev || DEFAULT_QUICKLINKS_LAYOUT) : { ...prev, ...updater };
+      return setQuicklinksLayout(nextState);
+    });
+  }, []);
+
+  const getGroupMessage = (key, fallback) => {
+    const value = variables.getMessage(key);
+    return value || fallback;
+  };
 
   const setContainerDisplay = (enabled) => {
     if (!quicklinksContainer || !quicklinksContainer.current) return;
@@ -52,7 +79,7 @@ const QuickLinksOptions = () => {
     }, 0);
   };
 
-  const addLink = async (name, url, icon) => {
+  const addLink = async (name, url, icon, groupKey = DEFAULT_GROUP_KEY) => {
     const data = readQuicklinks();
 
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -69,11 +96,15 @@ const QuickLinksOptions = () => {
       return;
     }
 
+    const nextGroup =
+      typeof groupKey === 'string' && groupKey.trim().length > 0 ? groupKey : DEFAULT_GROUP_KEY;
+
     const newItem = {
       name: name || (await getTitleFromUrl(url)),
       url,
       icon: icon || '',
       key: Date.now().toString() + Math.random().toString(36).substring(2),
+      group: nextGroup,
     };
 
     data.push(newItem);
@@ -89,6 +120,8 @@ const QuickLinksOptions = () => {
     setTimeout(() => {
       silenceEventRef.current = false;
     }, 0);
+
+    return newItem;
   };
 
   const startEditLink = (data) => {
@@ -97,14 +130,18 @@ const QuickLinksOptions = () => {
     setShowAddModal(true);
   };
 
-  const editLink = async (og, name, url, icon) => {
+  const editLink = async (og, name, url, icon, groupKey = og?.group || DEFAULT_GROUP_KEY) => {
     const data = readQuicklinks();
     const dataobj = data.find((i) => i.key === og.key);
     if (!dataobj) return;
 
+    const nextGroup =
+      typeof groupKey === 'string' && groupKey.trim().length > 0 ? groupKey : og.group || DEFAULT_GROUP_KEY;
+
     dataobj.name = name || (await getTitleFromUrl(url));
     dataobj.url = url;
     dataobj.icon = icon || '';
+    dataobj.group = nextGroup;
 
     silenceEventRef.current = true;
     localStorage.setItem('quicklinks', JSON.stringify(data));
@@ -115,6 +152,8 @@ const QuickLinksOptions = () => {
     setTimeout(() => {
       silenceEventRef.current = false;
     }, 0);
+
+    return dataobj;
   };
 
   const handleDragEnd = (event) => {
@@ -142,6 +181,30 @@ const QuickLinksOptions = () => {
   useEffect(() => {
     setContainerDisplay(enabled);
   }, [enabled]);
+
+  useEffect(() => {
+    const handleGroupRefresh = (data) => {
+      if (data !== 'quicklinkGroups') return;
+      setGroups(getGroups());
+    };
+
+    EventBus.on('refresh', handleGroupRefresh);
+    return () => {
+      EventBus.off('refresh', handleGroupRefresh);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleLayoutRefresh = (data) => {
+      if (data !== 'quicklinksLayout') return;
+      setLayoutConfig(getQuicklinksLayout());
+    };
+
+    EventBus.on('refresh', handleLayoutRefresh);
+    return () => {
+      EventBus.off('refresh', handleLayoutRefresh);
+    };
+  }, []);
 
   useEffect(() => {
     setContainerDisplay(enabled);
@@ -172,6 +235,7 @@ const QuickLinksOptions = () => {
   }, [enabled, items]);
 
   const QUICKLINKS_SECTION = 'modals.main.settings.sections.quicklinks';
+  const groupModalTitleKey = `${QUICKLINKS_SECTION}.groups`;
 
   const AdditionalSettings = () => (
     <Row>
@@ -220,6 +284,97 @@ const QuickLinksOptions = () => {
     </Row>
   );
 
+  const LayoutSettings = () => {
+    const rowOptions = [1, 2, 3, 4].map((value) => ({
+      value,
+      text: `${value} 行`,
+    }));
+    const colOptions = [2, 3, 4, 5, 6, 7, 8].map((value) => ({
+      value,
+      text: `${value} 列`,
+    }));
+    const shapeOptions = [
+      { value: 'square', text: '方形' },
+      { value: 'circle', text: '圆形' },
+    ];
+    const maxItemsPerPage = layoutConfig.rows * layoutConfig.cols;
+
+    const handleRowChange = (value) => {
+      const parsed = Number(value);
+      updateLayoutConfig((prev) => {
+        const nextState = { ...(prev || DEFAULT_QUICKLINKS_LAYOUT), rows: parsed };
+        nextState.itemsPerPage = parsed * (nextState.cols || DEFAULT_QUICKLINKS_LAYOUT.cols);
+        return nextState;
+      });
+    };
+
+    const handleColChange = (value) => {
+      const parsed = Number(value);
+      updateLayoutConfig((prev) => {
+        const nextState = { ...(prev || DEFAULT_QUICKLINKS_LAYOUT), cols: parsed };
+        nextState.itemsPerPage = (nextState.rows || DEFAULT_QUICKLINKS_LAYOUT.rows) * parsed;
+        return nextState;
+      });
+    };
+
+    return (
+      <Row>
+        <Content title="布局设置" subtitle="自定义快捷方式分页、网格与图标样式" />
+        <Action>
+          <div className="quicklinks-layout-settings">
+            <Dropdown
+              label="行数"
+              name="quicklinks-layout-rows"
+              category="quicklinksLayoutControls"
+              items={rowOptions}
+              value={layoutConfig.rows}
+              noSetting={true}
+              onChange={handleRowChange}
+            />
+            <Dropdown
+              label="列数"
+              name="quicklinks-layout-cols"
+              category="quicklinksLayoutControls"
+              items={colOptions}
+              value={layoutConfig.cols}
+              noSetting={true}
+              onChange={handleColChange}
+            />
+            <Dropdown
+              label="图标形状"
+              name="quicklinks-layout-shape"
+              category="quicklinksLayoutControls"
+              items={shapeOptions}
+              value={layoutConfig.shape}
+              noSetting={true}
+              onChange={(value) => updateLayoutConfig({ shape: value })}
+            />
+            <Slider
+              title="每页显示数量"
+              name="quicklinks-layout-items"
+              value={layoutConfig.itemsPerPage}
+              default={layoutConfig.rows * layoutConfig.cols}
+              min={1}
+              max={maxItemsPerPage}
+              persistValue={false}
+              onChange={(value) => updateLayoutConfig({ itemsPerPage: Number(value) })}
+            />
+            <Slider
+              title="图标间距 (px)"
+              name="quicklinks-layout-gap"
+              value={layoutConfig.gap}
+              default={DEFAULT_QUICKLINKS_LAYOUT.gap}
+              min={8}
+              max={24}
+              persistValue={false}
+              onChange={(value) => updateLayoutConfig({ gap: Number(value) })}
+            />
+          </div>
+        </Action>
+      </Row>
+    );
+  };
+
   const AddLink = () => (
     <Row final={true}>
       <Content title={variables.getMessage(`${QUICKLINKS_SECTION}.title`)} />
@@ -231,6 +386,92 @@ const QuickLinksOptions = () => {
           label={variables.getMessage(`${QUICKLINKS_SECTION}.add_link`)}
           disabled={!enabled}
         />
+      </Action>
+    </Row>
+  );
+
+  const openGroupModal = (group = null) => {
+    if (group && group.key === DEFAULT_GROUP_KEY) return;
+    setActiveGroup(group);
+    setGroupForm({
+      name: group?.name || '',
+      color: group?.color || '#888888',
+    });
+    setShowGroupModal(true);
+  };
+
+  const closeGroupModal = () => {
+    setShowGroupModal(false);
+    setActiveGroup(null);
+    setGroupForm({ name: '', color: '#888888' });
+  };
+
+  const handleGroupSave = (event) => {
+    if (event && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+
+    const formName = groupForm.name;
+    const formColor = groupForm.color;
+    const nextGroups = activeGroup
+      ? updateGroup(activeGroup.key, formName, formColor)
+      : addGroup(formName, formColor);
+
+    setGroups(nextGroups);
+    closeGroupModal();
+  };
+
+  const handleGroupDelete = (group) => {
+    if (group.key === DEFAULT_GROUP_KEY) return;
+    const nextGroups = removeGroup(group.key);
+    setGroups(nextGroups);
+  };
+
+  const GroupManagement = () => (
+    <Row>
+      <Content
+        title={getGroupMessage(`${groupModalTitleKey}.title`, 'Group management')}
+        subtitle={getGroupMessage(`${groupModalTitleKey}.subtitle`, '创建、编辑和管理快捷方式分组')}
+      />
+      <Action>
+        <div className="group-management">
+          <div className="group-list">
+            {groups.map((group) => (
+              <div className="group-item" key={group.key}>
+                <div className="group-details">
+                  <span
+                    className="color-indicator"
+                    style={{ backgroundColor: group.color }}
+                    aria-label={group.name}
+                  />
+                  <span className="group-name">{group.name}</span>
+                </div>
+                {group.key !== DEFAULT_GROUP_KEY && (
+                  <div className="group-actions">
+                    <Button
+                      type="icon"
+                      icon={<MdEdit />}
+                      tooltipTitle={variables.getMessage(`${QUICKLINKS_SECTION}.edit`)}
+                      onClick={() => openGroupModal(group)}
+                    />
+                    <Button
+                      type="icon"
+                      icon={<MdDelete />}
+                      tooltipTitle={variables.getMessage('modals.main.marketplace.product.buttons.remove')}
+                      onClick={() => handleGroupDelete(group)}
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <Button
+            type="settings"
+            icon={<MdAdd />}
+            label={getGroupMessage(`${groupModalTitleKey}.new`, '新建分组')}
+            onClick={() => openGroupModal()}
+          />
+        </div>
       </Action>
     </Row>
   );
@@ -254,6 +495,8 @@ const QuickLinksOptions = () => {
       >
         <AdditionalSettings />
         <StylingOptions />
+        <LayoutSettings />
+        <GroupManagement />
         <AddLink />
 
         {items.length === 0 && (
@@ -306,8 +549,9 @@ const QuickLinksOptions = () => {
       >
         <AddModal
           urlError={urlError}
-          addLink={(name, url, icon) => addLink(name, url, icon)}
-          editLink={(og, name, url, icon) => editLink(og, name, url, icon)}
+          iconError={iconError}
+          addLink={(name, url, icon, groupKey) => addLink(name, url, icon, groupKey)}
+          editLink={(og, name, url, icon, groupKey) => editLink(og, name, url, icon, groupKey)}
           edit={edit}
           editData={editData}
           closeModal={() => {
@@ -316,7 +560,64 @@ const QuickLinksOptions = () => {
             setIconError('');
             setEdit(false);
           }}
+          enableGroups={true}
         />
+      </Modal>
+      <Modal
+        closeTimeoutMS={100}
+        onRequestClose={() => closeGroupModal()}
+        isOpen={showGroupModal}
+        className="Modal resetmodal mainModal"
+        overlayClassName="Overlay resetoverlay"
+        ariaHideApp={false}
+      >
+        <div className="addLinkModal groupModal">
+          <div className="shareHeader">
+            <span className="title">
+              {activeGroup
+                ? getGroupMessage(`${groupModalTitleKey}.edit_title`, '编辑分组')
+                : getGroupMessage(`${groupModalTitleKey}.create_title`, '创建分组')}
+            </span>
+            <Tooltip title={variables.getMessage('modals.welcome.buttons.close')}>
+              <div className="close" onClick={() => closeGroupModal()}>
+                <MdClose />
+              </div>
+            </Tooltip>
+          </div>
+          <div className="group-form">
+            <label className="group-form-field">
+              <span>
+                {getGroupMessage(`${groupModalTitleKey}.name`, '分组名称')}
+              </span>
+              <input
+                type="text"
+                value={groupForm.name}
+                onChange={(event) => setGroupForm((prev) => ({ ...prev, name: event.target.value }))}
+                placeholder={getGroupMessage(`${groupModalTitleKey}.name_placeholder`, '输入名称')}
+              />
+            </label>
+            <label className="group-form-field">
+              <span>{getGroupMessage(`${groupModalTitleKey}.color`, '分组颜色')}</span>
+              <input
+                type="color"
+                value={groupForm.color}
+                onChange={(event) => setGroupForm((prev) => ({ ...prev, color: event.target.value }))}
+              />
+            </label>
+            <div className="group-form-actions">
+              <Button
+                type="settings"
+                label={
+                  activeGroup
+                    ? getGroupMessage(`${groupModalTitleKey}.save`, '保存修改')
+                    : getGroupMessage(`${groupModalTitleKey}.create`, '创建分组')
+                }
+                icon={<MdAddLink />}
+                onClick={handleGroupSave}
+              />
+            </div>
+          </div>
+        </div>
       </Modal>
     </>
   );
