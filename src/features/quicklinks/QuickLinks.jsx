@@ -20,6 +20,7 @@ const QuickLinks = memo(() => {
   const [forceUpdate, setForceUpdate] = useState(0); // Used to force complete re-render
   const [layoutConfig, setLayoutConfig] = useState(() => getQuicklinksLayout());
   const [currentPage, setCurrentPage] = useState(1);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const quicklinksWrapper = useRef(null);
   const quicklinksContainer = useRef(null);
   const wheelCooldownRef = useRef(false);
@@ -135,6 +136,30 @@ const QuickLinks = memo(() => {
     setZoom(quicklinksContainer.current);
   }, [items, forceUpdate, setZoom, currentPage, layoutConfig]);
 
+  useEffect(() => {
+    const container = quicklinksContainer.current;
+    if (!container || typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+
+    const observer = new ResizeObserver((entries) => {
+      if (!entries || entries.length === 0) {
+        return;
+      }
+
+      const { width, height } = entries[0].contentRect;
+      setContainerSize((prev) => {
+        if (prev.width === width && prev.height === height) {
+          return prev;
+        }
+        return { width, height };
+      });
+    });
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
   const totalPages = useMemo(
     () =>
       Math.max(
@@ -164,6 +189,33 @@ const QuickLinks = memo(() => {
     };
   }, [isGridLayoutActive, layoutGap, layoutCols, layoutRows]);
 
+  const iconSize = useMemo(() => {
+    const cols = Number(layoutCols) || DEFAULT_QUICKLINKS_LAYOUT.cols;
+    const rows = Number(layoutRows) || DEFAULT_QUICKLINKS_LAYOUT.rows;
+    const normalizedGap = Number(layoutGap);
+    const gap = Number.isFinite(normalizedGap) ? normalizedGap : DEFAULT_QUICKLINKS_LAYOUT.gap;
+
+    if (containerSize.width === 0 || containerSize.height === 0) {
+      return 64;
+    }
+
+    const availableWidth = Math.max(containerSize.width, 0);
+    const availableHeight = Math.max(containerSize.height, 0);
+    const cellWidth = (availableWidth - gap * (cols - 1)) / cols;
+    const cellHeight = (availableHeight - gap * (rows - 1)) / rows;
+    const cellSize = Math.max(0, Math.min(cellWidth, cellHeight));
+    const calculatedSize = Math.round(cellSize * 0.92);
+
+    return Math.max(48, Math.min(150, calculatedSize));
+  }, [layoutCols, layoutRows, layoutGap, containerSize]);
+
+  const containerStyle = useMemo(() => {
+    const style = {
+      '--quicklink-icon-size': `${iconSize}px`,
+    };
+    return gridStyle ? { ...gridStyle, ...style } : style;
+  }, [gridStyle, iconSize]);
+
   const pageNumbers = useMemo(
     () => Array.from({ length: totalPages }, (_, index) => index + 1),
     [totalPages],
@@ -188,8 +240,8 @@ const QuickLinks = memo(() => {
 
       const nextPage =
         direction > 0
-          ? Math.min(totalPages, safeCurrentPage + 1)
-          : Math.max(1, safeCurrentPage - 1);
+          ? safeCurrentPage === totalPages ? 1 : safeCurrentPage + 1
+          : safeCurrentPage === 1 ? totalPages : safeCurrentPage - 1;
 
       if (nextPage === safeCurrentPage) return;
 
@@ -314,7 +366,7 @@ const QuickLinks = memo(() => {
       <div
         className={`quicklinkscontainer${isGridLayoutActive ? ' quicklinks-grid' : ''}`}
         ref={quicklinksContainer}
-        style={gridStyle}
+        style={containerStyle}
       >
         {paginatedItems && paginatedItems.map((item, index) => quickLink(item, index))}
       </div>
