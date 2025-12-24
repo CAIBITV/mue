@@ -17,3 +17,10 @@ yarn.lock
 keys.json
 .DS_Store
 *.zip
+
+# config
+openspec
+CLAUDE.md
+AGENTS.md
+.claude
+.serena
