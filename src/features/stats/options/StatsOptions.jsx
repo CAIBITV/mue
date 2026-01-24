@@ -1,6 +1,12 @@
- 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { MdShowChart, MdRestartAlt, MdDownload, MdAccessTime, MdLock } from 'react-icons/md';
+import {
+  MdShowChart,
+  MdRestartAlt,
+  MdDownload,
+  MdAccessTime,
+  MdLock,
+  MdError,
+} from 'react-icons/md';
 import { FaTrophy } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import Modal from 'react-modal';
@@ -18,6 +24,7 @@ import {
 } from 'features/stats/api/achievements';
 
 const Stats = () => {
+  const isPreviewMode = localStorage.getItem('welcomePreview') === 'true';
   const [stats, setStats] = useState(() => JSON.parse(localStorage.getItem('statsData')) || {});
   const [achievements, setAchievements] = useState(initialAchievements);
   const [clearmodal, setClearmodal] = useState(false);
@@ -80,6 +87,31 @@ const Stats = () => {
   );
 
   const STATS_SECTION = 'modals.main.settings.sections.stats';
+
+  if (isPreviewMode) {
+    return (
+      <>
+        <Header title={variables.getMessage(`${STATS_SECTION}.title`)} report={false} />
+        <div className="emptyItems">
+          <div className="emptyMessage">
+            <div className="loaderHolder">
+              <MdError />
+              <span className="title">
+                {variables.getMessage(
+                  'modals.main.settings.sections.advanced.preview_data_disabled.title',
+                )}
+              </span>
+              <span className="subtitle">
+                {variables.getMessage(
+                  'modals.main.settings.sections.advanced.preview_data_disabled.description',
+                )}
+              </span>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
