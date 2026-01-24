@@ -1,5 +1,6 @@
 import variables from 'config/variables';
 import { memo, useState, useEffect, useCallback } from 'react';
+import { formatNumber } from 'utils/formatNumber';
 
 import WeatherIcon from './components/WeatherIcon';
 import Expanded from './components/Expanded';
@@ -63,12 +64,12 @@ const WeatherWidget = memo(() => {
         <div className="iconAndTemps">
           <div className="weathericon">
             <WeatherIcon name={weatherData.icon} />
-            <span>{`${weatherData.weather.temp}${weatherData.temp_text}`}</span>
+            <span>{`${formatNumber(weatherData.weather.temp)}${weatherData.temp_text}`}</span>
           </div>
           {weatherType >= 2 && (
             <span className="minmax">
-              <span className="subtitle">{`${weatherData.weather.temp_min}${weatherData.temp_text}`}</span>
-              <span className="subtitle">{`${weatherData.weather.temp_max}${weatherData.temp_text}`}</span>
+              <span className="subtitle">{`${formatNumber(weatherData.weather.temp_min)}${weatherData.temp_text}`}</span>
+              <span className="subtitle">{`${formatNumber(weatherData.weather.temp_max)}${weatherData.temp_text}`}</span>
             </span>
           )}
         </div>
@@ -76,7 +77,7 @@ const WeatherWidget = memo(() => {
           <div className="extra-info">
             <span>
               {variables.getMessage('widgets.weather.feels_like', {
-                amount: `${weatherData.weather.feels_like}${weatherData.temp_text}`,
+                amount: `${formatNumber(weatherData.weather.feels_like)}${weatherData.temp_text}`,
               })}
             </span>
             <span className="loc">{location}</span>

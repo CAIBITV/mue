@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 
 import { convertTimezone } from 'utils/date';
+import { formatPercentage, formatDigits } from 'utils/formatNumber';
 import { AnalogClock } from './components/AnalogClock';
 import { VerticalClock } from './components/VerticalClock';
 import EventBus from 'utils/eventbus';
@@ -49,21 +50,24 @@ const Clock = () => {
           const zero = localStorage.getItem('zero');
 
           if (localStorage.getItem('seconds') === 'true') {
-            sec = `:${('00' + now.getSeconds()).slice(-2)}`;
-            setFinalSeconds(`${('00' + now.getSeconds()).slice(-2)}`);
+            const secs = ('00' + now.getSeconds()).slice(-2);
+            sec = `:${formatDigits(secs)}`;
+            setFinalSeconds(formatDigits(secs));
           }
 
           if (localStorage.getItem('timeformat') === 'twentyfourhour') {
             if (zero === 'false') {
-              time = `${now.getHours()}:${('00' + now.getMinutes()).slice(-2)}:${sec}`;
-              setFinalHour(`${now.getHours()}`);
-              setFinalMinute(`${('00' + now.getMinutes()).slice(-2)}`);
+              const hours = now.getHours();
+              const minutes = ('00' + now.getMinutes()).slice(-2);
+              time = `${formatDigits(hours)}:${formatDigits(minutes)}${sec}`;
+              setFinalHour(formatDigits(hours));
+              setFinalMinute(formatDigits(minutes));
             } else {
-              time = `${('00' + now.getHours()).slice(-2)}:${('00' + now.getMinutes()).slice(
-                -2,
-              )}${sec}`;
-              setFinalHour(`${('00' + now.getHours()).slice(-2)}`);
-              setFinalMinute(`${('00' + now.getMinutes()).slice(-2)}`);
+              const hours = ('00' + now.getHours()).slice(-2);
+              const minutes = ('00' + now.getMinutes()).slice(-2);
+              time = `${formatDigits(hours)}:${formatDigits(minutes)}${sec}`;
+              setFinalHour(formatDigits(hours));
+              setFinalMinute(formatDigits(minutes));
             }
 
             setTime(time);
@@ -79,13 +83,16 @@ const Clock = () => {
             }
 
             if (zero === 'false') {
-              time = `${hours}:${('00' + now.getMinutes()).slice(-2)}${sec}`;
-              setFinalHour(`${hours}`);
-              setFinalMinute(`${('00' + now.getMinutes()).slice(-2)}`);
+              const minutes = ('00' + now.getMinutes()).slice(-2);
+              time = `${formatDigits(hours)}:${formatDigits(minutes)}${sec}`;
+              setFinalHour(formatDigits(hours));
+              setFinalMinute(formatDigits(minutes));
             } else {
-              time = `${('00' + hours).slice(-2)}:${('00' + now.getMinutes()).slice(-2)}${sec}`;
-              setFinalHour(`${('00' + hours).slice(-2)}`);
-              setFinalMinute(`${('00' + now.getMinutes()).slice(-2)}`);
+              const paddedHours = ('00' + hours).slice(-2);
+              const minutes = ('00' + now.getMinutes()).slice(-2);
+              time = `${formatDigits(paddedHours)}:${formatDigits(minutes)}${sec}`;
+              setFinalHour(formatDigits(paddedHours));
+              setFinalMinute(formatDigits(minutes));
             }
 
             setTime(time);
@@ -136,11 +143,7 @@ const Clock = () => {
 
   if (localStorage.getItem('timeType') === 'verticalClock') {
     return (
-      <VerticalClock
-        finalHour={finalHour}
-        finalMinute={finalMinute}
-        finalSeconds={finalSeconds}
-      />
+      <VerticalClock finalHour={finalHour} finalMinute={finalMinute} finalSeconds={finalSeconds} />
     );
   }
 

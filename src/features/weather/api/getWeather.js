@@ -9,6 +9,35 @@ const convertTemperature = (temp, format) => {
   return Math.round(temp);
 };
 
+const getLocalizedTempSymbol = (format) => {
+  const language = localStorage.getItem('language') || 'en_GB';
+  const baseLang = language.split('_')[0];
+
+  // Temperature symbols for different languages
+  const localizedSymbols = {
+    ar: {
+      celsius: '°س', // Arabic: Celsius (سيلزيوس)
+      fahrenheit: '°ف', // Arabic: Fahrenheit (فهرنهايت)
+      kelvin: 'ك', // Arabic: Kelvin (كلفن)
+    },
+    fa: {
+      celsius: '°س', // Persian: Celsius
+      fahrenheit: '°ف', // Persian: Fahrenheit
+      kelvin: 'ک', // Persian: Kelvin
+    },
+  };
+
+  // Default Western symbols
+  const defaultSymbols = {
+    celsius: '°C',
+    fahrenheit: '°F',
+    kelvin: 'K',
+  };
+
+  // Return localized symbol if available, otherwise default
+  return localizedSymbols[baseLang]?.[format] || defaultSymbols[format] || 'K';
+};
+
 export const getWeather = async (location, done) => {
   if (done === true) {
     return;
@@ -44,15 +73,9 @@ export const getWeather = async (location, done) => {
     const { temp, temp_min, temp_max, feels_like } = data.main;
     const tempFormat = localStorage.getItem('tempformat');
 
-    const tempSymbols = {
-      celsius: '°C',
-      kelvin: 'K',
-      fahrenheit: '°F',
-    };
-
     const cacheable = {
       icon: data.weather[0].icon,
-      temp_text: tempSymbols[tempFormat] || 'K',
+      temp_text: getLocalizedTempSymbol(tempFormat),
       weather: {
         temp: convertTemperature(temp, tempFormat),
         description: data.weather[0].description,

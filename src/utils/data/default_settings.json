@@ -240,6 +240,10 @@
     "value": "{}"
   },
   {
+    "name": "localeFormatting",
+    "value": true
+  },
+  {
     "name": "offlineMode",
     "value": false
   },
