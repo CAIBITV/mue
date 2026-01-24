@@ -18,16 +18,22 @@ const WeatherWidget = memo(() => {
   const [weatherData, setWeatherData] = useState({});
 
   const updateWeather = useCallback(async () => {
-    const data = await getWeather(location, done);
-    setWeatherData(data);
-    setDone(data.done);
+    const data = await getWeather(location);
+    if (data) {
+      setWeatherData(data);
+      setDone(data.done);
+    } else {
+      // Fallback if data is undefined
+      setWeatherData({ done: true });
+      setDone(true);
+    }
 
     const zoomWeather = `${Number((localStorage.getItem('zoomWeather') || 100) / 100)}em`;
     const weatherElement = document.querySelector('.weather');
     if (weatherElement) {
       weatherElement.style.fontSize = zoomWeather;
     }
-  }, [location, done]);
+  }, [location]);
 
   useEffect(() => {
     const handleRefresh = async (data) => {

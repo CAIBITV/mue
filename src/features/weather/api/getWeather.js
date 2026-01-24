@@ -38,11 +38,7 @@ const getLocalizedTempSymbol = (format) => {
   return localizedSymbols[baseLang]?.[format] || defaultSymbols[format] || 'K';
 };
 
-export const getWeather = async (location, done) => {
-  if (done === true) {
-    return;
-  }
-
+export const getWeather = async (location) => {
   let cached = localStorage.getItem('currentWeather');
   if (cached) {
     cached = JSON.parse(cached);
@@ -58,7 +54,7 @@ export const getWeather = async (location, done) => {
     );
 
     if (!response.ok) {
-      throw new Error('Network response was not ok');
+      throw new Error(`Network response was not ok: ${response.status}`);
     }
 
     const data = await response.json();
@@ -98,5 +94,9 @@ export const getWeather = async (location, done) => {
     return cacheable;
   } catch (error) {
     console.error('Fetch Error: ', error);
+    return {
+      location: variables.getMessage('widgets.weather.fetch_error'),
+      done: true,
+    };
   }
 };
