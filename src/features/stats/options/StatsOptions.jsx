@@ -40,9 +40,8 @@ const Stats = () => {
     localStorage.setItem('achievements', JSON.stringify([]));
     localStorage.setItem('achievementTimestamps', JSON.stringify({}));
     setStats(emptyStats);
-    // Reset achievements to initial state (all locked, no timestamps)
-    const resetAchievements = initialAchievements.map((a) => ({ ...a, achieved: false, timestamp: undefined }));
-    setAchievements(resetAchievements);
+    // Update achievements based on the empty stats
+    setAchievements(checkAchievements(emptyStats));
     setClearmodal(false);
     toast(variables.getMessage('toasts.stats_reset'));
   };
