@@ -22,18 +22,17 @@ export function uninstall(type, name) {
     }
 
     case 'quotes':
-      installedContents = JSON.parse(localStorage.getItem('quote_packs'));
+      installedContents = JSON.parse(localStorage.getItem('quote_packs')) || [];
       packContents = JSON.parse(localStorage.getItem('installed')).find(
         (content) => content.name === name,
       );
-      installedContents.forEach((item, index) => {
-        const exists = packContents.quotes.find(
-          (content) => content.quote === item.quote || content.author === item.author,
-        );
-        if (exists !== undefined) {
-          installedContents.splice(index, 1);
-        }
-      });
+      if (packContents && packContents.quotes) {
+        installedContents = installedContents.filter((item) => {
+          return !packContents.quotes.some(
+            (content) => content.quote === item.quote && content.author === item.author,
+          );
+        });
+      }
       localStorage.setItem('quote_packs', JSON.stringify(installedContents));
       if (installedContents.length === 0) {
         localStorage.setItem('quoteType', localStorage.getItem('oldQuoteType') || 'api');
@@ -45,16 +44,17 @@ export function uninstall(type, name) {
       break;
 
     case 'photos':
-      installedContents = JSON.parse(localStorage.getItem('photo_packs'));
+      installedContents = JSON.parse(localStorage.getItem('photo_packs')) || [];
       packContents = JSON.parse(localStorage.getItem('installed')).find(
         (content) => content.name === name,
       );
-      installedContents.forEach((item, index) => {
-        const exists = packContents.photos.find((content) => content.photo === item.photo);
-        if (exists !== undefined) {
-          installedContents.splice(index, 1);
-        }
-      });
+      if (packContents && packContents.photos) {
+        installedContents = installedContents.filter((item) => {
+          return !packContents.photos.some(
+            (content) => content.url?.default === item.url?.default,
+          );
+        });
+      }
       localStorage.setItem('photo_packs', JSON.stringify(installedContents));
       if (installedContents.length === 0) {
         // Switch back to old background type or default to mue api
