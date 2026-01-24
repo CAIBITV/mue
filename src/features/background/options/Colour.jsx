@@ -4,25 +4,28 @@ import ColorPicker from 'react-best-gradient-color-picker';
 import { toast } from 'react-toastify';
 import { Row, Content, Action } from 'components/Layout/Settings/Item';
 import { MdRefresh } from 'react-icons/md';
+import EventBus from 'utils/eventbus';
 
 import '../scss/_colourpicker.scss';
 
 const ColourOptions = () => {
   const [colour, setColour] = useState(
-    localStorage.getItem('customBackgroundColour') || 'rgba(0, 0, 0, 0)',
+    localStorage.getItem('customBackgroundColour') || 'rgba(0, 0, 0, 100)',
   );
 
   const changeColour = (output) => {
     setColour(output);
     localStorage.setItem('customBackgroundColour', output);
     showReminder();
+    EventBus.emit('refresh', 'background');
   };
 
   const resetColour = () => {
     setColour('rgba(0, 0, 0, 0)');
-    localStorage.setItem('customBackgroundColour', 'rgba(0, 0, 0, 0)');
+    localStorage.setItem('customBackgroundColour', 'rgba(0, 0, 0, 100)');
     toast(variables.getMessage('toasts.reset'));
     showReminder();
+    EventBus.emit('refresh', 'background');
   };
 
   const showReminder = () => {
