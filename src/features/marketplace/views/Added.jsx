@@ -140,9 +140,14 @@ const Added = memo(() => {
   const updateCheck = useCallback(() => {
     let updates = 0;
     installed.forEach(async (item) => {
+      if (!item.id) {
+        return;
+      }
+
       const data = await (
-        await fetch(variables.constants.API_URL + 'marketplace/item/' + item.name)
+        await fetch(variables.constants.API_URL + '/marketplace/item/' + item.id)
       ).json();
+
       if (data.version !== item.version) {
         updates++;
       }
