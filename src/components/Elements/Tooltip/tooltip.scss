@@ -33,9 +33,44 @@
   cursor: initial;
   user-select: none;
   opacity: 1;
-  animation-name: floating;
-  animation-duration: 0.3s;
-  animation-timing-function: ease-in;
+  transition:
+    opacity 0.2s ease-out,
+    transform 0.2s ease-out;
+
+  // Initial state (not yet shown)
+  &[data-status='initial'] {
+    opacity: 0;
+  }
+
+  // Open state - entrance animation
+  &[data-status='open'] {
+    opacity: 1;
+    transform: translate(0, 0);
+    animation-name: floating;
+    animation-duration: 0.3s;
+    animation-timing-function: ease-in;
+  }
+
+  // Closing state - exit animation
+  &[data-status='close'] {
+    opacity: 0;
+
+    &[data-placement^='top'] {
+      transform: translateY(5px);
+    }
+
+    &[data-placement^='bottom'] {
+      transform: translateY(-5px);
+    }
+
+    &[data-placement^='left'] {
+      transform: translateX(5px);
+    }
+
+    &[data-placement^='right'] {
+      transform: translateX(-5px);
+    }
+  }
 }
 
 #modal {
