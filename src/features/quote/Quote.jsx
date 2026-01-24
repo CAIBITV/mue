@@ -28,7 +28,7 @@ export default function Quote() {
 
   const setZoom = () => {
     if (quoteRef.current) {
-      quoteRef.current.style.fontSize = `${0.8 * settings.zoom}em`;
+      quoteRef.current.style.fontSize = `${1.2 * settings.zoom}em`;
     }
   };
 
@@ -40,7 +40,7 @@ export default function Quote() {
   useQuoteEvents(getQuote, setZoom);
 
   useEffect(() => {
-    const shouldRefresh = localStorage.getItem('quotechange') === 'refresh' || 
+    const shouldRefresh = localStorage.getItem('quotechange') === 'refresh' ||
                          localStorage.getItem('quotechange') === null;
     
     if (shouldRefresh) {
