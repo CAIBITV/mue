@@ -1,8 +1,13 @@
-function Header({ title, subtitle }) {
+
+function Header({ title, subtitle, children }) {
   return (
     <>
       <span className="mainTitle">{title}</span>
-      <span className="subtitle">{subtitle}</span>
+      <span className="subtitle">
+        {subtitle}
+        {subtitle && children ? ' ' : null}
+        {children}
+      </span>
     </>
   );
 }

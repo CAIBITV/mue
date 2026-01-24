@@ -10,26 +10,21 @@ function ChooseLanguage() {
     <Content>
       <Header
         title={variables.getMessage('modals.welcome.sections.language.title')}
-        subtitle={variables.getMessage('modals.welcome.sections.language.description')}
+        subtitle={
+          <>
+            {variables.getMessage('modals.welcome.sections.language.description')}{' '}
+            <a
+              href={variables.constants.TRANSLATIONS_URL}
+              className="link"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2em' }}
+            >
+              GitHub <MdOutlineOpenInNew />
+            </a>
+          </>
+        }
       />
-      <a
-        href={variables.constants.TRANSLATIONS_URL}
-        className="link"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        GitHub
-        <MdOutlineOpenInNew />
-      </a>
-      <a
-        href={variables.constants.WEBLATE_URL}
-        className="link"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Weblate
-        <MdOutlineOpenInNew />
-      </a>
       <div className="languageSettings">
         <Radio name="language" options={languages} category="welcomeLanguage" />
       </div>
