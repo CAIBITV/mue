@@ -5,12 +5,14 @@ import * as Sentry from '@sentry/react';
 import App from './App';
 import ErrorBoundary from './ErrorBoundary';
 import { initLanguage } from './bootstrap/initLanguage';
+import { initStorageBridge } from './bootstrap/initStorageBridge';
 import variables from './config/variables';
 
 import './scss/index.scss';
 // the toast css is based on default so we need to import it
 import 'react-toastify/dist/ReactToastify.css';
 
+await initStorageBridge();
 initLanguage();
 
 Sentry.init({

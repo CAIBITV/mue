@@ -7,6 +7,7 @@ import * as pkg from './package.json';
 import progress from 'vite-plugin-progress';
 
 const isProd = process.env.NODE_ENV === 'production';
+const SUPPORTED_MANIFEST_LOCALES = ['en', 'en_US', 'zh_CN'];
 
 const prepareBuilds = () => ({
   name: 'prepareBuilds',
@@ -18,6 +19,7 @@ const prepareBuilds = () => ({
 
       // chrome
       fs.mkdirSync(path.resolve(__dirname, './build/chrome'), { recursive: true });
+      fs.rmSync(path.resolve(__dirname, './build/chrome/_locales'), { recursive: true, force: true });
       fs.copyFileSync(
         path.resolve(__dirname, './manifest/chrome.json'),
         path.resolve(__dirname, './build/chrome/manifest.json'),
@@ -26,11 +28,14 @@ const prepareBuilds = () => ({
         path.resolve(__dirname, './manifest/background.js'),
         path.resolve(__dirname, './build/chrome/background.js'),
       );
-      fs.cpSync(
-        path.resolve(__dirname, './manifest/_locales'),
-        path.resolve(__dirname, './build/chrome/_locales'),
-        { recursive: true },
-      );
+      fs.mkdirSync(path.resolve(__dirname, './build/chrome/_locales'), { recursive: true });
+      SUPPORTED_MANIFEST_LOCALES.forEach((locale) => {
+        fs.cpSync(
+          path.resolve(__dirname, `./manifest/_locales/${locale}`),
+          path.resolve(__dirname, `./build/chrome/_locales/${locale}`),
+          { recursive: true },
+        );
+      });
       fs.cpSync(path.resolve(__dirname, './dist'), path.resolve(__dirname, './build/chrome/'), {
         recursive: true,
       });

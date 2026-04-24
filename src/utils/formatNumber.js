@@ -3,7 +3,7 @@
  * and add numbering system extensions for languages that use non-Latin numerals
  */
 export function getLocaleCode() {
-  const language = localStorage.getItem('language')?.replace(/_/g, '-') || 'en-GB';
+  const language = localStorage.getItem('language')?.replace(/_/g, '-') || 'en-US';
 
   // Map language codes to their native numbering systems
   const numberingSystems = {

@@ -10,7 +10,7 @@ const convertTemperature = (temp, format) => {
 };
 
 const getLocalizedTempSymbol = (format) => {
-  const language = localStorage.getItem('language') || 'en_GB';
+  const language = localStorage.getItem('language') || 'en_US';
   const baseLang = language.split('_')[0];
 
   // Temperature symbols for different languages

@@ -11,16 +11,16 @@ export function setDefaultSettings(reset) {
   defaultSettings.forEach((element) => localStorage.setItem(element.name, element.value));
 
   // Languages
-  const languageCodes = languages.map(({ value }) => value);
-  const browserLanguage =
-    (navigator.languages &&
-      navigator.languages.find((lang) => lang.replace('-', '_') && languageCodes.includes(lang))) ||
-    navigator.language.replace('-', '_');
+  const browserLanguage = (navigator.language || 'en-US').replace('-', '_');
+  const browserLanguages = (navigator.languages || []).map((lang) => lang.replace('-', '_'));
+  const prefersChinese =
+    browserLanguage.startsWith('zh') || browserLanguages.some((lang) => lang.startsWith('zh'));
+  const fallbackLanguage = prefersChinese ? 'zh_CN' : 'en_US';
 
-  if (languageCodes.includes(browserLanguage)) {
-    localStorage.setItem('language', browserLanguage);
+  if (languages.some(({ value }) => value === fallbackLanguage)) {
+    localStorage.setItem('language', fallbackLanguage);
   } else {
-    localStorage.setItem('language', 'en_GB');
+    localStorage.setItem('language', 'en_US');
   }
 
   localStorage.setItem('tabName', variables.getMessage('tabname'));

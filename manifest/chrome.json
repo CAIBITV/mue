@@ -4,9 +4,9 @@
   "default_locale": "en",
   "name": "__MSG_name__",
   "description": "__MSG_description__",
-  "version": "7.1.3",
+  "version": "7.1.4",
   "homepage_url": "https://muetab.com",
-  "permissions": ["search", "activeTab", "tabs"],
+  "permissions": ["search", "activeTab", "tabs", "storage"],
   "action": {
     "default_icon": "icons/128x128.png",
     "default_popup": "quicklink-popup.html"

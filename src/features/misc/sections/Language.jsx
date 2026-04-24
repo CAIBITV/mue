@@ -1,11 +1,18 @@
 import variables from 'config/variables';
 import { useState, useEffect, useRef } from 'react';
 
-import { MdOutlineOpenInNew } from 'react-icons/md';
-
 import { Radio } from 'components/Form/Settings';
 
 import languages from '@/i18n/languages.json';
+
+const SUPPORTED_QUOTE_LANGUAGE_CODES = {
+  en: 'en_US',
+  en_US: 'en_US',
+  en_GB: 'en_US',
+  zh: 'zh_CN',
+  zh_CN: 'zh_CN',
+  zh_Hant: 'zh_CN',
+};
 
 const LanguageOptions = () => {
   const [quoteLanguages, setQuoteLanguages] = useState([
@@ -28,14 +35,17 @@ const LanguageOptions = () => {
       return;
     }
 
-    const fetchedQuoteLanguages = data.map((language) => {
-      return {
-        name: languages.find((l) => l.value === language.name)
-          ? languages.find((l) => l.value === language.name).name
-          : 'English',
-        value: language,
-      };
-    });
+    const fetchedQuoteLanguages = data
+      .filter((language) => SUPPORTED_QUOTE_LANGUAGE_CODES[language.name])
+      .map((language) => {
+        const normalizedCode = SUPPORTED_QUOTE_LANGUAGE_CODES[language.name];
+        const matchedLanguage = languages.find((item) => item.value === normalizedCode);
+
+        return {
+          name: matchedLanguage ? matchedLanguage.name : 'English (US)',
+          value: { ...language, name: normalizedCode },
+        };
+      });
 
     setQuoteLanguages(fetchedQuoteLanguages);
   };
@@ -65,17 +75,6 @@ const LanguageOptions = () => {
         <span className="mainTitle">
           {variables.getMessage('modals.main.settings.sections.language.title')}
         </span>
-        <div className="headerActions">
-          <a
-            className="link"
-            href="https://hosted.weblate.org/new-lang/mue/mue-tab/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Add translation
-            <MdOutlineOpenInNew />
-          </a>
-        </div>
       </div>
       <div className="languageSettings">
         <Radio name="language" options={languages} element=".other" />

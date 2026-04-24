@@ -1,5 +1,4 @@
 import variables from 'config/variables';
-import { MdOutlineOpenInNew } from 'react-icons/md';
 import languages from '@/i18n/languages.json';
 
 import { Radio } from 'components/Form/Settings';
@@ -10,20 +9,7 @@ function ChooseLanguage() {
     <Content>
       <Header
         title={variables.getMessage('modals.welcome.sections.language.title')}
-        subtitle={
-          <>
-            {variables.getMessage('modals.welcome.sections.language.description')}{' '}
-            <a
-              href={variables.constants.TRANSLATIONS_URL}
-              className="link"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2em' }}
-            >
-              GitHub <MdOutlineOpenInNew />
-            </a>
-          </>
-        }
+        subtitle={variables.getMessage('modals.welcome.sections.language.description')}
       />
       <div className="languageSettings">
         <Radio name="language" options={languages} category="welcomeLanguage" />

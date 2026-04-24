@@ -30,7 +30,7 @@ function Refresh() {
         break;
       case 'quotebackground':
         text = new Intl.ListFormat(
-          localStorage.getItem('language')?.replace(/_/gm, '-') || 'en-GB',
+          localStorage.getItem('language')?.replace(/_/gm, '-') || 'en-US',
           {
             style: 'long',
             type: 'conjunction',
