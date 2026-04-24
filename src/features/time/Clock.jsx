@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 
 import { convertTimezone } from 'utils/date';
-import { formatPercentage, formatDigits } from 'utils/formatNumber';
+import { getLocaleCode } from 'utils/formatNumber';
 import { AnalogClock } from './components/AnalogClock';
 import { VerticalClock } from './components/VerticalClock';
 import EventBus from 'utils/eventbus';
@@ -9,7 +9,6 @@ import EventBus from 'utils/eventbus';
 import './clock.scss';
 
 const Clock = () => {
-  const [timeType] = useState(localStorage.getItem('timeType'));
   const [time, setTime] = useState('');
   const [finalHour, setFinalHour] = useState('');
   const [finalMinute, setFinalMinute] = useState('');
@@ -18,6 +17,21 @@ const Clock = () => {
   const [display, setDisplay] = useState('block');
   const [fontSize, setFontSize] = useState('4em');
   const timerRef = useRef(undefined);
+
+  const formatClockUnit = (value, shouldPad = false) => {
+    if (localStorage.getItem('localeFormatting') === 'false') {
+      return shouldPad ? String(value).padStart(2, '0') : String(value);
+    }
+
+    try {
+      return new Intl.NumberFormat(getLocaleCode(), {
+        minimumIntegerDigits: shouldPad ? 2 : 1,
+        useGrouping: false,
+      }).format(value);
+    } catch {
+      return shouldPad ? String(value).padStart(2, '0') : String(value);
+    }
+  };
 
   const startTime = (
     time = localStorage.getItem('seconds') === 'true' ||
@@ -48,26 +62,29 @@ const Clock = () => {
           let time,
             sec = '';
           const zero = localStorage.getItem('zero');
+          const shouldPadHours = zero !== 'false';
+          const shouldPadMinutes = true;
 
           if (localStorage.getItem('seconds') === 'true') {
-            const secs = ('00' + now.getSeconds()).slice(-2);
-            sec = `:${formatDigits(secs)}`;
-            setFinalSeconds(formatDigits(secs));
+            const secs = formatClockUnit(now.getSeconds(), true);
+            sec = `:${secs}`;
+            setFinalSeconds(secs);
           }
 
           if (localStorage.getItem('timeformat') === 'twentyfourhour') {
             if (zero === 'false') {
               const hours = now.getHours();
-              const minutes = ('00' + now.getMinutes()).slice(-2);
-              time = `${formatDigits(hours)}:${formatDigits(minutes)}${sec}`;
-              setFinalHour(formatDigits(hours));
-              setFinalMinute(formatDigits(minutes));
+              const formattedHours = formatClockUnit(hours, shouldPadHours);
+              const formattedMinutes = formatClockUnit(now.getMinutes(), shouldPadMinutes);
+              time = `${formattedHours}:${formattedMinutes}${sec}`;
+              setFinalHour(formattedHours);
+              setFinalMinute(formattedMinutes);
             } else {
-              const hours = ('00' + now.getHours()).slice(-2);
-              const minutes = ('00' + now.getMinutes()).slice(-2);
-              time = `${formatDigits(hours)}:${formatDigits(minutes)}${sec}`;
-              setFinalHour(formatDigits(hours));
-              setFinalMinute(formatDigits(minutes));
+              const formattedHours = formatClockUnit(now.getHours(), shouldPadHours);
+              const formattedMinutes = formatClockUnit(now.getMinutes(), shouldPadMinutes);
+              time = `${formattedHours}:${formattedMinutes}${sec}`;
+              setFinalHour(formattedHours);
+              setFinalMinute(formattedMinutes);
             }
 
             setTime(time);
@@ -83,16 +100,17 @@ const Clock = () => {
             }
 
             if (zero === 'false') {
-              const minutes = ('00' + now.getMinutes()).slice(-2);
-              time = `${formatDigits(hours)}:${formatDigits(minutes)}${sec}`;
-              setFinalHour(formatDigits(hours));
-              setFinalMinute(formatDigits(minutes));
+              const formattedHours = formatClockUnit(hours, shouldPadHours);
+              const formattedMinutes = formatClockUnit(now.getMinutes(), shouldPadMinutes);
+              time = `${formattedHours}:${formattedMinutes}${sec}`;
+              setFinalHour(formattedHours);
+              setFinalMinute(formattedMinutes);
             } else {
-              const paddedHours = ('00' + hours).slice(-2);
-              const minutes = ('00' + now.getMinutes()).slice(-2);
-              time = `${formatDigits(paddedHours)}:${formatDigits(minutes)}${sec}`;
-              setFinalHour(formatDigits(paddedHours));
-              setFinalMinute(formatDigits(minutes));
+              const formattedHours = formatClockUnit(hours, shouldPadHours);
+              const formattedMinutes = formatClockUnit(now.getMinutes(), shouldPadMinutes);
+              time = `${formattedHours}:${formattedMinutes}${sec}`;
+              setFinalHour(formattedHours);
+              setFinalMinute(formattedMinutes);
             }
 
             setTime(time);
