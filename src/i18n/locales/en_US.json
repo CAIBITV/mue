@@ -580,10 +580,10 @@
           },
           "title": "Welcome to Mue Tab"
         },
-        "language": {
-          "description": "Mue can be displayed the languages listed below. You can also add new translations on our",
-          "title": "Choose your language"
-        },
+      "language": {
+        "description": "Choose whether Mue should use English or Chinese.",
+        "title": "Choose your language"
+      },
         "privacy": {
           "description": "Enable settings to further protect your privacy with Mue.",
           "links": {

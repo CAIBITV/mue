@@ -17,7 +17,8 @@ function Final(props) {
         <div className="toggle" onClick={() => props.switchTab(1)}>
           <span>
             {variables.getMessage('modals.main.settings.sections.language.title')}:{' '}
-            {languages.find((i) => i.value === localStorage.getItem('language')).name}
+            {(languages.find((i) => i.value === localStorage.getItem('language')) || languages[0])
+              .name}
           </span>
         </div>
         <div className="toggle" onClick={() => props.switchTab(3)}>

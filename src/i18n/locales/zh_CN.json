@@ -636,10 +636,10 @@
           },
           "title": "欢迎使用 Mue 新标签插件"
         },
-        "language": {
-          "description": "Mue 支持以下语言。你也可以在这里添加新的翻译",
-          "title": "更改语言"
-        },
+      "language": {
+        "description": "请选择 Mue 使用中文还是英文。",
+        "title": "更改语言"
+      },
         "privacy": {
           "description": "进行一些设置来和 Mue 更好的保护您的隐私",
           "links": {
