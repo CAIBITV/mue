@@ -679,6 +679,24 @@
     },
     "quicklinks": {
       "add": "增加",
+      "capture": {
+        "description": "確認目前頁面資訊後，再儲存為捷徑。",
+        "group": "群組",
+        "open_preview": "捷徑彈窗預覽",
+        "page_label": "目前頁面",
+        "page_unavailable": "目前頁面無法加入為捷徑。",
+        "preview_mode": "預覽模式",
+        "preview_notice": "預覽模式不會真的儲存捷徑。",
+        "preview_scenario": "預覽場景",
+        "preview_scenarios": {
+          "default": "預設頁面",
+          "long": "長標題頁面",
+          "no_icon": "無圖示頁面",
+          "unsupported": "不支援的頁面"
+        },
+        "saved": "已儲存",
+        "title": "新增目前頁面"
+      },
       "edit": "編輯連結",
       "icon": "圖示（選擇性）",
       "name": "名稱",

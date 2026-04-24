@@ -9,7 +9,11 @@ import Modal from 'react-modal';
 
 import { AddModal } from 'components/Elements/AddModal';
 import { SortableList } from './components';
-import { readQuicklinks } from './utils/quicklinksUtils';
+import {
+  createQuicklink,
+  readQuicklinks,
+  updateQuicklink,
+} from './utils/quicklinksUtils';
 import {
   getGroups,
   addGroup,
@@ -99,29 +103,24 @@ const QuickLinksOptions = () => {
     const nextGroup =
       typeof groupKey === 'string' && groupKey.trim().length > 0 ? groupKey : DEFAULT_GROUP_KEY;
 
-    const newItem = {
+    const createdQuicklink = createQuicklink({
       name: name || (await getTitleFromUrl(url)),
       url,
       icon: icon || '',
-      key: Date.now().toString() + Math.random().toString(36).substring(2),
       group: nextGroup,
-    };
-
-    data.push(newItem);
+    });
 
     silenceEventRef.current = true;
-    localStorage.setItem('quicklinks', JSON.stringify(data));
-    setItems(data);
+    setItems([...data, createdQuicklink]);
     setShowAddModal(false);
     setUrlError('');
     setIconError('');
     variables.stats.postEvent('feature', 'Quicklink add');
-    EventBus.emit('refresh', 'quicklinks');
     setTimeout(() => {
       silenceEventRef.current = false;
     }, 0);
 
-    return newItem;
+    return createdQuicklink;
   };
 
   const startEditLink = (data) => {
@@ -132,28 +131,30 @@ const QuickLinksOptions = () => {
 
   const editLink = async (og, name, url, icon, groupKey = og?.group || DEFAULT_GROUP_KEY) => {
     const data = readQuicklinks();
-    const dataobj = data.find((i) => i.key === og.key);
-    if (!dataobj) return;
+    const exists = data.some((item) => item.key === og.key);
+    if (!exists) return;
 
     const nextGroup =
       typeof groupKey === 'string' && groupKey.trim().length > 0 ? groupKey : og.group || DEFAULT_GROUP_KEY;
 
-    dataobj.name = name || (await getTitleFromUrl(url));
-    dataobj.url = url;
-    dataobj.icon = icon || '';
-    dataobj.group = nextGroup;
+    const updatedQuicklink = updateQuicklink(og.key, {
+      name: name || (await getTitleFromUrl(url)),
+      url,
+      icon: icon || '',
+      group: nextGroup,
+    });
+
+    if (!updatedQuicklink) return;
 
     silenceEventRef.current = true;
-    localStorage.setItem('quicklinks', JSON.stringify(data));
-    setItems(data);
+    setItems(data.map((item) => (item.key === og.key ? updatedQuicklink : item)));
     setShowAddModal(false);
     setEdit(false);
-    EventBus.emit('refresh', 'quicklinks');
     setTimeout(() => {
       silenceEventRef.current = false;
     }, 0);
 
-    return dataobj;
+    return updatedQuicklink;
   };
 
   const handleDragEnd = (event) => {

@@ -735,6 +735,24 @@
     },
     "quicklinks": {
       "add": "添加",
+      "capture": {
+        "description": "确认当前页面信息后，再保存为快捷方式。",
+        "group": "分组",
+        "open_preview": "快捷方式弹窗预览",
+        "page_label": "当前页面",
+        "page_unavailable": "当前页面无法添加为快捷方式。",
+        "preview_mode": "预览模式",
+        "preview_notice": "预览模式不会真的保存快捷方式。",
+        "preview_scenario": "预览场景",
+        "preview_scenarios": {
+          "default": "默认页面",
+          "long": "长标题页面",
+          "no_icon": "无图标页面",
+          "unsupported": "不支持的页面"
+        },
+        "saved": "已保存",
+        "title": "添加当前页面"
+      },
       "edit": "编辑链接",
       "icon": "图标 (可选)",
       "name": "名称",

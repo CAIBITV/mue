@@ -679,6 +679,24 @@
     },
     "quicklinks": {
       "add": "Add",
+      "capture": {
+        "description": "Review the current page info before saving it as a quicklink.",
+        "group": "Group",
+        "open_preview": "Quicklink Popup Preview",
+        "page_label": "Current page",
+        "page_unavailable": "This page cannot be added as a quicklink.",
+        "preview_mode": "Preview mode",
+        "preview_notice": "Preview mode does not save changes to your quicklinks.",
+        "preview_scenario": "Scenario",
+        "preview_scenarios": {
+          "default": "Default page",
+          "long": "Long title",
+          "no_icon": "No icon",
+          "unsupported": "Unsupported page"
+        },
+        "saved": "Saved",
+        "title": "Add Current Page"
+      },
       "edit": "Edit Link",
       "icon": "Icon (optional)",
       "name": "Name",

@@ -27,10 +27,41 @@ const useAppSetup = () => {
 
     EventBus.on('refresh', refreshHandler);
 
+    const storageHandler = (event) => {
+      if (event.storageArea !== localStorage) return;
+
+      switch (event.key) {
+        case 'quicklinks':
+          EventBus.emit('refresh', 'quicklinks');
+          break;
+        case 'quicklinkGroups':
+          EventBus.emit('refresh', 'quicklinkGroups');
+          break;
+        case 'currentQuicklinkGroup':
+          EventBus.emit('refresh', 'currentQuicklinkGroup');
+          break;
+        case 'quicklinksLayout':
+          EventBus.emit('refresh', 'quicklinksLayout');
+          break;
+      }
+    };
+
+    const extensionApi = globalThis.browser || globalThis.chrome;
+    const runtimeMessageHandler = (message) => {
+      if (message?.type === 'mue.quicklinks.updated') {
+        EventBus.emit('refresh', 'quicklinks');
+      }
+    };
+
+    window.addEventListener('storage', storageHandler);
+    extensionApi?.runtime?.onMessage?.addListener(runtimeMessageHandler);
+
     variables.stats.tabLoad();
 
     return () => {
       EventBus.off('refresh', refreshHandler);
+      window.removeEventListener('storage', storageHandler);
+      extensionApi?.runtime?.onMessage?.removeListener?.(runtimeMessageHandler);
     };
   }, []);
 };
@@ -54,6 +85,16 @@ const App = () => {
 
   useAppSetup();
 
+  const openQuicklinkPreview = () => {
+    const previewWindow = window.open(
+      '/quicklink-popup.html?preview=1',
+      'mueQuicklinkPreview',
+      'popup=yes,width=420,height=720,resizable=yes',
+    );
+
+    previewWindow?.focus();
+  };
+
   return (
     <>
       {showBackground && <Background />}
@@ -68,6 +109,28 @@ const App = () => {
         <Widgets />
         <Modals />
       </div>
+      {import.meta.env.DEV && (
+        <button
+          type="button"
+          onClick={openQuicklinkPreview}
+          style={{
+            position: 'fixed',
+            right: '18px',
+            bottom: '18px',
+            zIndex: 9999,
+            border: 0,
+            borderRadius: '999px',
+            padding: '10px 14px',
+            background: 'linear-gradient(135deg, #ff6d36 0%, #ef4d2c 100%)',
+            color: '#fff',
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: '0 18px 30px rgba(239, 77, 44, 0.24)',
+          }}
+        >
+          {variables.getMessage('widgets.quicklinks.capture.open_preview')}
+        </button>
+      )}
     </>
   );
 };

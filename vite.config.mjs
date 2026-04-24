@@ -101,6 +101,10 @@ export default defineConfig(({ command, mode }) => {
       minify: isProd ? 'esbuild' : false,
       sourcemap: !isProd,
       rollupOptions: {
+        input: {
+          main: path.resolve(__dirname, './index.html'),
+          quicklinkPopup: path.resolve(__dirname, './quicklink-popup.html'),
+        },
         output: {
           manualChunks: undefined, // Let Vite handle chunking automatically to avoid circular dependency issues
         },
