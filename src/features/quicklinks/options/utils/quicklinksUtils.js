@@ -2,6 +2,88 @@ import EventBus from 'utils/eventbus';
 
 const QUICKLINKS_STORAGE_KEY = 'quicklinks';
 const DEFAULT_GROUP_KEY = 'all';
+const FAVICON_SERVICE_URL = 'https://icon.horse/icon/';
+const QUICKLINK_ICON_TYPES = ['auto', 'url', 'file'];
+
+const appendRefreshParam = (source, refreshKey) => {
+  if (!source || !refreshKey) return source;
+  const separator = source.includes('?') ? '&' : '?';
+  return `${source}${separator}r=${refreshKey}`;
+};
+
+const getHostnameFromUrl = (rawUrl = '') => {
+  try {
+    return new URL(rawUrl).hostname;
+  } catch {
+    return rawUrl.replace(/^https?:\/\//, '').split('/')[0];
+  }
+};
+
+export const getAutoIconUrl = (url, refreshKey) => {
+  const hostname = getHostnameFromUrl(url);
+  if (!hostname) return '';
+  return appendRefreshParam(`${FAVICON_SERVICE_URL}${hostname}`, refreshKey);
+};
+
+export const normalizeQuicklinkIcon = (icon) => {
+  if (icon && typeof icon === 'object') {
+    const type = QUICKLINK_ICON_TYPES.includes(icon.type) ? icon.type : 'auto';
+    return {
+      type,
+      value: typeof icon.value === 'string' ? icon.value : '',
+      refreshedAt: icon.refreshedAt || '',
+    };
+  }
+
+  if (typeof icon === 'string' && icon.trim().length > 0) {
+    return {
+      type: 'url',
+      value: icon.trim(),
+      refreshedAt: '',
+    };
+  }
+
+  return {
+    type: 'auto',
+    value: '',
+    refreshedAt: '',
+  };
+};
+
+export const resolveQuicklinkIcon = (item = {}) => {
+  const icon = normalizeQuicklinkIcon(item.icon);
+
+  if (icon.type === 'file' || icon.type === 'url') {
+    return appendRefreshParam(icon.value, icon.refreshedAt);
+  }
+
+  return getAutoIconUrl(item.url, icon.refreshedAt);
+};
+
+export const getQuicklinkInitial = (item = {}) => {
+  const label = item.name || getHostnameFromUrl(item.url) || '?';
+  return label.trim().slice(0, 1).toUpperCase() || '?';
+};
+
+export const normalizeQuicklinkUrl = (url = '') => {
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  if (/^(about:|chrome:\/\/|edge:\/\/|firefox:\/\/)/i.test(trimmed)) return trimmed;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^(localhost|127\.0\.0\.1)(:\d+)?(\/.*)?$/i.test(trimmed)) return `http://${trimmed}`;
+  return `https://${trimmed}`;
+};
+
+export const isValidQuicklinkUrl = (url = '') => {
+  if (/^(about:|chrome:\/\/|edge:\/\/|firefox:\/\/)/i.test(url)) return true;
+
+  try {
+    const parsed = new URL(url);
+    return ['http:', 'https:'].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+};
 
 const normalizeQuicklink = (item = {}) => {
   if (!item || typeof item !== 'object') return null;
@@ -32,7 +114,7 @@ export const notifyQuicklinksChanged = () => {
     if (result?.catch) {
       result.catch(() => {});
     }
-  } catch (_error) {
+  } catch {
     // Ignore when the current context has no runtime listener available.
   }
 };
@@ -94,6 +176,26 @@ export const updateQuicklink = (originalKey, updates = {}) => {
 
   return updatedQuicklink;
 };
+
+export const deleteQuicklink = (key) => {
+  const quicklinks = readQuicklinks();
+  const updatedQuicklinks = quicklinks.filter((item) => item.key !== key);
+  if (updatedQuicklinks.length === quicklinks.length) return quicklinks;
+
+  persistQuicklinks(updatedQuicklinks);
+  notifyQuicklinksChanged();
+
+  return updatedQuicklinks;
+};
+
+export const refreshQuicklinkIcon = (key) =>
+  updateQuicklink(key, {
+    icon: {
+      type: 'auto',
+      value: '',
+      refreshedAt: Date.now().toString(),
+    },
+  });
 
 export const assignQuicklinkToGroup = (key, groupKey = DEFAULT_GROUP_KEY) => {
   const quicklinks = readQuicklinks();

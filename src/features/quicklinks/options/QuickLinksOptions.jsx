@@ -11,6 +11,10 @@ import { AddModal } from 'components/Elements/AddModal';
 import { SortableList } from './components';
 import {
   createQuicklink,
+  deleteQuicklink,
+  isValidQuicklinkUrl,
+  normalizeQuicklinkIcon,
+  normalizeQuicklinkUrl,
   readQuicklinks,
   updateQuicklink,
 } from './utils/quicklinksUtils';
@@ -71,13 +75,10 @@ const QuickLinksOptions = () => {
   const deleteLink = (key, event) => {
     event.preventDefault();
 
-    const stored = readQuicklinks();
-    const data = stored.filter((i) => i.key !== key);
+    const data = deleteQuicklink(key);
     silenceEventRef.current = true;
-    localStorage.setItem('quicklinks', JSON.stringify(data));
     setItems(data);
     variables.stats.postEvent('feature', 'Quicklink delete');
-    EventBus.emit('refresh', 'quicklinks');
     setTimeout(() => {
       silenceEventRef.current = false;
     }, 0);
@@ -85,17 +86,19 @@ const QuickLinksOptions = () => {
 
   const addLink = async (name, url, icon, groupKey = DEFAULT_GROUP_KEY) => {
     const data = readQuicklinks();
+    const nextUrl = normalizeQuicklinkUrl(url);
+    const nextIcon = normalizeQuicklinkIcon(icon);
 
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = 'https://' + url;
-    }
-
-    if (url.length <= 0 || isValidUrl(url) === false) {
+    if (nextUrl.length <= 0 || isValidQuicklinkUrl(nextUrl) === false) {
       setUrlError(variables.getMessage('widgets.quicklinks.url_error'));
       return;
     }
 
-    if (icon.length > 0 && isValidUrl(icon) === false) {
+    if (
+      nextIcon.type === 'url' &&
+      nextIcon.value.length > 0 &&
+      isValidUrl(nextIcon.value) === false
+    ) {
       setIconError(variables.getMessage('widgets.quicklinks.url_error'));
       return;
     }
@@ -104,9 +107,9 @@ const QuickLinksOptions = () => {
       typeof groupKey === 'string' && groupKey.trim().length > 0 ? groupKey : DEFAULT_GROUP_KEY;
 
     const createdQuicklink = createQuicklink({
-      name: name || (await getTitleFromUrl(url)),
-      url,
-      icon: icon || '',
+      name: name || (await getTitleFromUrl(nextUrl)),
+      url: nextUrl,
+      icon: nextIcon,
       group: nextGroup,
     });
 
@@ -134,13 +137,30 @@ const QuickLinksOptions = () => {
     const exists = data.some((item) => item.key === og.key);
     if (!exists) return;
 
+    const nextUrl = normalizeQuicklinkUrl(url);
+    const nextIcon = normalizeQuicklinkIcon(icon);
+
+    if (nextUrl.length <= 0 || isValidQuicklinkUrl(nextUrl) === false) {
+      setUrlError(variables.getMessage('widgets.quicklinks.url_error'));
+      return;
+    }
+
+    if (
+      nextIcon.type === 'url' &&
+      nextIcon.value.length > 0 &&
+      isValidUrl(nextIcon.value) === false
+    ) {
+      setIconError(variables.getMessage('widgets.quicklinks.url_error'));
+      return;
+    }
+
     const nextGroup =
       typeof groupKey === 'string' && groupKey.trim().length > 0 ? groupKey : og.group || DEFAULT_GROUP_KEY;
 
     const updatedQuicklink = updateQuicklink(og.key, {
-      name: name || (await getTitleFromUrl(url)),
-      url,
-      icon: icon || '',
+      name: name || (await getTitleFromUrl(nextUrl)),
+      url: nextUrl,
+      icon: nextIcon,
       group: nextGroup,
     });
 
@@ -370,6 +390,16 @@ const QuickLinksOptions = () => {
               persistValue={false}
               onChange={(value) => updateLayoutConfig({ gap: Number(value) })}
             />
+            <Slider
+              title="图标大小 (%)"
+              name="quicklinks-layout-icon-scale"
+              value={layoutConfig.iconScale}
+              default={DEFAULT_QUICKLINKS_LAYOUT.iconScale}
+              min={50}
+              max={100}
+              persistValue={false}
+              onChange={(value) => updateLayoutConfig({ iconScale: Number(value) })}
+            />
           </div>
         </Action>
       </Row>
@@ -549,6 +579,7 @@ const QuickLinksOptions = () => {
         ariaHideApp={false}
       >
         <AddModal
+          key={edit ? editData?.key || 'edit' : 'add'}
           urlError={urlError}
           iconError={iconError}
           addLink={(name, url, icon, groupKey) => addLink(name, url, icon, groupKey)}

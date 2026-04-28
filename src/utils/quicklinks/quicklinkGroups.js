@@ -9,6 +9,7 @@ export const DEFAULT_QUICKLINKS_LAYOUT = {
   cols: 6,
   shape: 'square',
   gap: 12,
+  iconScale: 86,
   itemsPerPage: 12,
 };
 const DEFAULT_GROUP = {
@@ -54,6 +55,12 @@ const sanitizeLayoutConfig = (config = {}) => {
   const safeRows = clampNumber(config.rows, 1, 4, DEFAULT_QUICKLINKS_LAYOUT.rows);
   const safeCols = clampNumber(config.cols, 2, 8, DEFAULT_QUICKLINKS_LAYOUT.cols);
   const safeGap = clampNumber(config.gap, 8, 24, DEFAULT_QUICKLINKS_LAYOUT.gap);
+  const safeIconScale = clampNumber(
+    config.iconScale,
+    50,
+    100,
+    DEFAULT_QUICKLINKS_LAYOUT.iconScale,
+  );
   const shape = config.shape === 'circle' ? 'circle' : 'square';
   const maxPerPage = safeRows * safeCols;
   const baseItems = clampNumber(
@@ -68,6 +75,7 @@ const sanitizeLayoutConfig = (config = {}) => {
     cols: safeCols,
     shape,
     gap: safeGap,
+    iconScale: safeIconScale,
     itemsPerPage: baseItems,
   };
 };

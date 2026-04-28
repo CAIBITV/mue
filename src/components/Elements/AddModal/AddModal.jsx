@@ -6,7 +6,10 @@ import { MdAddLink, MdClose } from 'react-icons/md';
 import { Tooltip } from 'components/Elements';
 import { Button } from 'components/Elements';
 import { getGroups } from 'utils/quicklinks/quicklinkGroups';
-import { assignQuicklinkToGroup } from 'features/quicklinks/options/utils/quicklinksUtils';
+import {
+  assignQuicklinkToGroup,
+  normalizeQuicklinkIcon,
+} from 'features/quicklinks/options/utils/quicklinksUtils';
 import EventBus from 'utils/eventbus';
 
 const QUICKLINKS_SECTION = 'modals.main.settings.sections.quicklinks';
@@ -24,7 +27,10 @@ function AddModal({
 }) {
   const [name, setName] = useState(edit ? editData.name : '');
   const [url, setUrl] = useState(edit ? editData.url : '');
-  const [icon, setIcon] = useState(edit ? editData.icon : '');
+  const initialIcon = normalizeQuicklinkIcon(edit ? editData.icon : '');
+  const [iconMode, setIconMode] = useState(initialIcon.type);
+  const [iconValue, setIconValue] = useState(initialIcon.value);
+  const [fileError, setFileError] = useState('');
   const shouldHandleGroups = enableGroups === true;
   const [groupOptions, setGroupOptions] = useState(() => (shouldHandleGroups ? getGroups() : []));
   const [selectedGroup, setSelectedGroup] = useState(() => {
@@ -65,10 +71,15 @@ function AddModal({
 
   const handleAddOrEdit = async () => {
     const groupKey = resolveGroupKey();
+    const iconPayload = {
+      type: iconMode,
+      value: iconMode === 'auto' ? '' : iconValue,
+    };
+
     if (edit) {
       const payload = shouldHandleGroups
-        ? [editData, name, url, icon, groupKey]
-        : [editData, name, url, icon];
+        ? [editData, name, url, iconPayload, groupKey]
+        : [editData, name, url, iconPayload];
       const updated = await editLink(...payload);
       if (shouldHandleGroups && updated?.key) {
         assignQuicklinkToGroup(updated.key, groupKey);
@@ -76,11 +87,29 @@ function AddModal({
       return;
     }
 
-    const payload = shouldHandleGroups ? [name, url, icon, groupKey] : [name, url, icon];
+    const payload = shouldHandleGroups ? [name, url, iconPayload, groupKey] : [name, url, iconPayload];
     const created = await addLink(...payload);
     if (shouldHandleGroups && created?.key) {
       assignQuicklinkToGroup(created.key, groupKey);
     }
+  };
+
+  const handleIconFileChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setFileError('请选择图片文件');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFileError('');
+      setIconValue(typeof reader.result === 'string' ? reader.result : '');
+    };
+    reader.onerror = () => setFileError('图标文件读取失败');
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -111,13 +140,42 @@ function AddModal({
           value={url}
           onChange={(e) => setUrl(e.target.value.replace(/(\r\n|\n|\r)/gm, ''))}
         />
-        <TextareaAutosize
-          maxRows={10}
-          maxLines={1}
-          placeholder={variables.getMessage('widgets.quicklinks.icon')}
-          value={icon}
-          onChange={(e) => setIcon(e.target.value.replace(/(\r\n|\n|\r)/gm, ''))}
-        />
+        <div className="quicklink-icon-editor">
+          <label htmlFor="quicklink-icon-mode">图标模式</label>
+          <select
+            id="quicklink-icon-mode"
+            value={iconMode}
+            onChange={(event) => {
+              setIconMode(event.target.value);
+              if (event.target.value === 'auto') {
+                setIconValue('');
+              }
+            }}
+          >
+            <option value="auto">自动获取</option>
+            <option value="url">图片 URL</option>
+            <option value="file">本地图片</option>
+          </select>
+          {iconMode === 'url' && (
+            <input
+              type="url"
+              placeholder={variables.getMessage('widgets.quicklinks.icon')}
+              value={iconValue}
+              onChange={(e) => setIconValue(e.target.value.replace(/(\r\n|\n|\r)/gm, ''))}
+            />
+          )}
+          {iconMode === 'file' && (
+            <>
+              <input type="file" accept="image/*" onChange={handleIconFileChange} />
+              {iconValue && (
+                <div className="quicklink-icon-preview">
+                  <img src={iconValue} alt="快捷方式图标预览" />
+                  <span>已选择本地图标</span>
+                </div>
+              )}
+            </>
+          )}
+        </div>
         {shouldHandleGroups && (
           <div className="group-select-wrapper">
             <label htmlFor="quicklink-group-select">
@@ -139,7 +197,7 @@ function AddModal({
       </div>
       <div className="addFooter">
         <span className="dropdown-error">
-          {iconError} {urlError}
+          {fileError || iconError} {urlError}
         </span>
         {edit ? (
           <Button

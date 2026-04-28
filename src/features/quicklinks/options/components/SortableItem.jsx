@@ -2,6 +2,10 @@ import { MdEdit, MdDelete } from 'react-icons/md';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DragHandle } from './DragHandle';
+import {
+  getQuicklinkInitial,
+  resolveQuicklinkIcon,
+} from 'features/quicklinks/options/utils/quicklinksUtils';
 
 export const SortableItem = ({ value, enabled, startEditLink, deleteLink }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -15,13 +19,6 @@ export const SortableItem = ({ value, enabled, startEditLink, deleteLink }) => {
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const getIconUrl = (item) => {
-    return (
-      item.icon ||
-      'https://icon.horse/icon/' + item.url.replace('https://', '').replace('http://', '')
-    );
-  };
-
   return (
     <div
       ref={setNodeRef}
@@ -33,7 +30,18 @@ export const SortableItem = ({ value, enabled, startEditLink, deleteLink }) => {
     >
       <DragHandle />
       <div className="quicklink-icon">
-        <img src={getIconUrl(value)} alt={value.name} draggable={false} />
+        {resolveQuicklinkIcon(value) ? (
+          <img
+            src={resolveQuicklinkIcon(value)}
+            alt={value.name}
+            draggable={false}
+            onError={(event) => {
+              event.currentTarget.style.display = 'none';
+            }}
+          />
+        ) : (
+          <span className="quicklink-icon-placeholder">{getQuicklinkInitial(value)}</span>
+        )}
       </div>
       <div className="quicklink-content">
         <div className="quicklink-name">{value.name}</div>
