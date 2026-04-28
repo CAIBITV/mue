@@ -48,6 +48,7 @@ export default [
         AbortController: 'readonly',
         btoa: 'readonly',
         atob: 'readonly',
+        __APP_VERSION__: 'readonly',
         // Node globals for scripts
         process: 'readonly',
         __dirname: 'readonly',

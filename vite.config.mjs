@@ -8,6 +8,13 @@ import progress from 'vite-plugin-progress';
 
 const isProd = process.env.NODE_ENV === 'production';
 const SUPPORTED_MANIFEST_LOCALES = ['en', 'en_US', 'zh_CN'];
+const appVersion = pkg.version;
+
+const writeVersionedManifest = (source, destination) => {
+  const manifest = JSON.parse(fs.readFileSync(source, 'utf8'));
+  manifest.version = appVersion;
+  fs.writeFileSync(destination, `${JSON.stringify(manifest, null, 2)}\n`);
+};
 
 const prepareBuilds = () => ({
   name: 'prepareBuilds',
@@ -20,7 +27,7 @@ const prepareBuilds = () => ({
       // chrome
       fs.mkdirSync(path.resolve(__dirname, './build/chrome'), { recursive: true });
       fs.rmSync(path.resolve(__dirname, './build/chrome/_locales'), { recursive: true, force: true });
-      fs.copyFileSync(
+      writeVersionedManifest(
         path.resolve(__dirname, './manifest/chrome.json'),
         path.resolve(__dirname, './build/chrome/manifest.json'),
       );
@@ -53,7 +60,7 @@ const prepareBuilds = () => ({
 
       // firefox
       fs.mkdirSync(path.resolve(__dirname, './build/firefox'), { recursive: true });
-      fs.copyFileSync(
+      writeVersionedManifest(
         path.resolve(__dirname, './manifest/firefox.json'),
         path.resolve(__dirname, './build/firefox/manifest.json'),
       );
@@ -78,11 +85,11 @@ const prepareBuilds = () => ({
       // create zip
       const zip = new ADMZip();
       zip.addLocalFolder(path.resolve(__dirname, './build/chrome'));
-      zip.writeZip(path.resolve(__dirname, `./build/chrome-${pkg.version}.zip`));
+      zip.writeZip(path.resolve(__dirname, `./build/chrome-${appVersion}.zip`));
 
       const zip2 = new ADMZip();
       zip2.addLocalFolder(path.resolve(__dirname, './build/firefox'));
-      zip2.writeZip(path.resolve(__dirname, `./build/firefox-${pkg.version}.zip`));
+      zip2.writeZip(path.resolve(__dirname, `./build/firefox-${appVersion}.zip`));
 
       //todo: fix this
       // temp copy src for /dist too
@@ -95,10 +102,13 @@ const prepareBuilds = () => ({
   },
 });
 
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
-    define: { __APP_ENV__: JSON.stringify(env.APP_ENV) },
+    define: {
+      __APP_ENV__: JSON.stringify(env.APP_ENV),
+      __APP_VERSION__: JSON.stringify(appVersion),
+    },
     plugins: [react(), prepareBuilds(), progress()],
     server: { open: true, hmr: { protocol: 'ws', host: 'localhost' } },
     build: {
