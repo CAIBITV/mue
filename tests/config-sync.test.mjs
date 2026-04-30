@@ -5,6 +5,7 @@ globalThis.__APP_VERSION__ = 'test';
 
 const schema = await import('../src/utils/sync/configSyncSchema.js');
 const keys = await import('../src/utils/sync/configSyncKeys.js');
+const service = await import('../src/utils/sync/configSyncService.js');
 
 test('sync private keys are detected consistently', () => {
   assert.equal(keys.isSyncPrivateKey('__mue_sync_private__'), true);
@@ -58,3 +59,31 @@ test('sync payload includes schema metadata and filtered data', () => {
   assert.deepEqual(payload.data, { theme: 'dark' });
 });
 
+test('startup sync refreshes global settings and changed widget areas', () => {
+  const events = service.getConfigSyncRefreshEventsForKeys([
+    'theme',
+    'quicklinks',
+    'quicklinkGroups',
+    'backgroundFilter',
+    'timezone',
+  ]);
+
+  assert.equal(events.includes('other'), true);
+  assert.equal(events.includes('quicklinks'), true);
+  assert.equal(events.includes('quicklinkGroups'), true);
+  assert.equal(events.includes('backgroundeffect'), true);
+  assert.equal(events.includes('timezone'), true);
+});
+
+test('startup pull is skipped while sync needs a manual decision', () => {
+  assert.equal(service.shouldSkipConfigSyncPull({ pausedReason: 'import-remote-decision' }), true);
+  assert.equal(service.shouldSkipConfigSyncPull({ status: 'conflict' }), true);
+  assert.equal(
+    service.shouldSkipConfigSyncPull(
+      { pausedReason: 'import-remote-decision', status: 'paused' },
+      { force: true },
+    ),
+    false,
+  );
+  assert.equal(service.shouldSkipConfigSyncPull({ status: 'synced' }), false);
+});

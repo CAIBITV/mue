@@ -20,6 +20,70 @@ export const CONFIG_SYNC_STATUS_EVENT = 'mue.configSync.statusChanged';
 export const CONFIG_SYNC_IMPORT_DECISION_EVENT = 'mue.configSync.importDecisionRequired';
 const STORAGE_CHANGE_EVENT = 'mue.storage.changed';
 const UPLOAD_DEBOUNCE_MS = 3000;
+const STARTUP_PULL_DELAY_MS = 1000;
+const SYNC_REFRESH_EVENTS_BY_KEY = {
+  background: ['background'],
+  backgroundAPI: ['backgroundrefresh'],
+  backgroundExclude: ['backgroundrefresh'],
+  backgroundFilter: ['backgroundeffect'],
+  backgroundFilterAmount: ['backgroundeffect'],
+  backgroundType: ['backgroundrefresh'],
+  backgroundVideoLoop: ['backgroundrefresh'],
+  backgroundVideoMute: ['backgroundrefresh'],
+  blur: ['backgroundeffect'],
+  brightness: ['backgroundeffect'],
+  currentQuicklinkGroup: ['currentQuicklinkGroup'],
+  customBackground: ['backgroundrefresh'],
+  date: ['widgets', 'date'],
+  dateFormat: ['date'],
+  datezero: ['date'],
+  defaultGreetingMessage: ['greeting'],
+  fontGoogle: ['other'],
+  fontstyle: ['other'],
+  fontweight: ['other'],
+  greeting: ['widgets', 'greeting'],
+  greetingName: ['greeting'],
+  language: ['other', 'clock', 'date'],
+  localeFormatting: ['clock', 'date'],
+  location: ['weather'],
+  message: ['widgets', 'message'],
+  messages: ['message'],
+  offlineMode: ['widgets', 'backgroundrefresh'],
+  order: ['widgets'],
+  quickLinksStyle: ['quicklinks'],
+  quicklinkGroups: ['quicklinkGroups'],
+  quicklinks: ['quicklinks'],
+  quicklinksLayout: ['quicklinksLayout'],
+  quicklinksenabled: ['widgets', 'quicklinks'],
+  quote: ['widgets', 'quoterefresh'],
+  quoteLanguage: ['quoterefresh'],
+  quoteType: ['quoterefresh'],
+  searchBar: ['widgets'],
+  searchEngine: ['search'],
+  tabName: ['other'],
+  tempformat: ['weather'],
+  textBorder: ['other'],
+  theme: ['other'],
+  time: ['widgets', 'clock'],
+  timeType: ['clock'],
+  timeformat: ['clock'],
+  timezone: ['timezone'],
+  todo: ['navbar'],
+  todoEnabled: ['navbar'],
+  todos: ['navbar'],
+  weatherEnabled: ['widgets', 'weather'],
+  weatherType: ['weather'],
+  widgetStyle: ['other'],
+  zero: ['clock'],
+  zoomClock: ['clock'],
+  zoomDate: ['date'],
+  zoomGreeting: ['greeting'],
+  zoomMessage: ['message'],
+  zoomNavbar: ['navbar'],
+  zoomQuicklinks: ['quicklinks'],
+  zoomQuote: ['quote'],
+  zoomWeather: ['weather'],
+};
 
 let uploadTimer = null;
 let importTransactionActive = false;
@@ -69,7 +133,33 @@ const saveError = async (error) => {
   emitStatus(nextState);
 };
 
+const getChangedSyncKeys = (data) =>
+  Object.entries(filterConfigSyncData(data))
+    .filter(([key, value]) => localStorage.getItem(key) !== value)
+    .map(([key]) => key);
+
+export const getConfigSyncRefreshEventsForKeys = (keys = []) => {
+  const events = new Set(['other']);
+
+  keys.forEach((key) => {
+    (SYNC_REFRESH_EVENTS_BY_KEY[key] || []).forEach((event) => events.add(event));
+  });
+
+  return Array.from(events);
+};
+
+const emitRefreshEventsForSyncKeys = (keys) => {
+  getConfigSyncRefreshEventsForKeys(keys).forEach((event) => {
+    EventBus.emit('refresh', event);
+  });
+};
+
+export const shouldSkipConfigSyncPull = (state = {}, { force = false } = {}) =>
+  !force && (Boolean(state.pausedReason) || state.status === 'conflict');
+
 const applySyncDataToLocalStorage = (data) => {
+  const changedKeys = getChangedSyncKeys(data);
+
   applyingRemoteData = true;
   try {
     Object.entries(filterConfigSyncData(data)).forEach(([key, value]) => {
@@ -78,6 +168,8 @@ const applySyncDataToLocalStorage = (data) => {
   } finally {
     applyingRemoteData = false;
   }
+
+  emitRefreshEventsForSyncKeys(changedKeys);
 };
 
 const readRemotePayload = async (accessToken) => {
@@ -108,8 +200,13 @@ export async function disconnectConfigSync() {
   emitStatus(await getSyncPrivateState());
 }
 
-export async function pullConfigSync() {
+export async function pullConfigSync({ force = false } = {}) {
   if (!(await isDropboxConnected())) return;
+
+  const currentState = await getSyncPrivateState();
+  if (shouldSkipConfigSyncPull(currentState, { force })) {
+    return;
+  }
 
   try {
     await saveStatus('syncing');
@@ -125,8 +222,8 @@ export async function pullConfigSync() {
 
     const remoteHash = await hashSyncData(remote.data);
     const state = await getSyncPrivateState();
-    const localChanged = state.lastSyncedHash && localHash !== state.lastSyncedHash;
-    const remoteChanged = state.lastRemoteRev && remote.rev !== state.lastRemoteRev;
+    const localChanged = Boolean(state.lastSyncedHash && localHash !== state.lastSyncedHash);
+    const remoteChanged = Boolean(state.lastRemoteRev && remote.rev !== state.lastRemoteRev);
 
     if (localChanged && remoteChanged) {
       await saveStatus('conflict', {
@@ -137,6 +234,16 @@ export async function pullConfigSync() {
           remoteData: remote.data,
           detectedAt: new Date().toISOString(),
         },
+      });
+      return;
+    }
+
+    if (remoteHash === localHash) {
+      await saveStatus('synced', {
+        conflict: undefined,
+        lastRemoteRev: remote.rev,
+        lastSyncedHash: remoteHash,
+        lastSyncedAt: new Date().toISOString(),
       });
       return;
     }
@@ -259,7 +366,7 @@ export async function useRemoteConfigForConflict() {
     return;
   }
 
-  await pullConfigSync();
+  await pullConfigSync({ force: true });
 }
 
 export async function continueWithLocalAfterImport() {
@@ -274,7 +381,7 @@ export async function continueWithRemoteAfterImport() {
   await pullConfigSync();
 }
 
-export function initConfigSyncService() {
+export function initConfigSyncService({ pullOnStart = true } = {}) {
   if (initialized) return;
   initialized = true;
 
@@ -282,9 +389,11 @@ export function initConfigSyncService() {
     scheduleConfigSyncUpload(event.detail?.key);
   });
 
-  setTimeout(() => {
-    void pullConfigSync();
-  }, 1000);
+  if (pullOnStart) {
+    setTimeout(() => {
+      void pullConfigSync();
+    }, STARTUP_PULL_DELAY_MS);
+  }
 }
 
 export function createDebugSyncSnapshot() {
