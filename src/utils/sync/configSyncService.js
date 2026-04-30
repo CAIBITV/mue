@@ -19,6 +19,7 @@ import { getSyncPrivateState, updateSyncPrivateState } from './syncPrivateStore'
 export const CONFIG_SYNC_STATUS_EVENT = 'mue.configSync.statusChanged';
 export const CONFIG_SYNC_IMPORT_DECISION_EVENT = 'mue.configSync.importDecisionRequired';
 const STORAGE_CHANGE_EVENT = 'mue.storage.changed';
+const CONFIG_SYNC_APPLIED_REFRESH = 'configSyncApplied';
 const UPLOAD_DEBOUNCE_MS = 3000;
 const STARTUP_PULL_DELAY_MS = 1000;
 const SYNC_REFRESH_EVENTS_BY_KEY = {
@@ -144,6 +145,10 @@ export const getConfigSyncRefreshEventsForKeys = (keys = []) => {
   keys.forEach((key) => {
     (SYNC_REFRESH_EVENTS_BY_KEY[key] || []).forEach((event) => events.add(event));
   });
+
+  if (keys.length > 0) {
+    events.add(CONFIG_SYNC_APPLIED_REFRESH);
+  }
 
   return Array.from(events);
 };

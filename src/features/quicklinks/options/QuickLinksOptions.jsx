@@ -238,11 +238,9 @@ const QuickLinksOptions = () => {
       const newItems = readQuicklinks();
       const oldItems = items || [];
 
-      const keysEqual =
-        oldItems.length === newItems.length &&
-        oldItems.every((i) => newItems.some((n) => n.key === i.key));
+      const itemsEqual = JSON.stringify(oldItems) === JSON.stringify(newItems);
 
-      if (newEnabled !== enabled || !keysEqual) {
+      if (newEnabled !== enabled || !itemsEqual) {
         setContainerDisplay(newEnabled);
         setItems(newItems);
         setEnabled(newEnabled);

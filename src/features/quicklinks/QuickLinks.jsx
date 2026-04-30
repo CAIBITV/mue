@@ -146,7 +146,9 @@ const QuickLinks = memo(() => {
           quicklinksWrapper.current.style.display = 'flex';
         }
         
-        applyGroup(currentGroup);
+        const latestGroups = getGroups();
+        setGroups(latestGroups);
+        applyGroup(getCurrentGroup(), latestGroups);
         return;
       }
 

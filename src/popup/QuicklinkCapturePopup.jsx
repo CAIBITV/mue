@@ -3,6 +3,7 @@ import variables from 'config/variables';
 import { createQuicklink } from 'features/quicklinks/options/utils/quicklinksUtils';
 import { getGroups } from 'utils/quicklinks/quicklinkGroups';
 import { isValidUrl } from 'utils/links';
+import { uploadCurrentConfig } from 'utils/sync/configSyncService';
 
 const DEFAULT_GROUP_KEY = 'all';
 const extensionApi = globalThis.browser || globalThis.chrome;
@@ -241,6 +242,12 @@ export default function QuicklinkCapturePopup() {
       icon: trimmedIcon,
       group: selectedGroup,
     });
+
+    try {
+      await uploadCurrentConfig();
+    } catch (syncError) {
+      console.warn('Failed to upload quicklink config from popup.', syncError);
+    }
 
     variables.stats.postEvent('feature', 'Quicklink add from popup');
     setIsSaved(true);

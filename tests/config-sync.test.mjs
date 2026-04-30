@@ -75,6 +75,13 @@ test('startup sync refreshes global settings and changed widget areas', () => {
   assert.equal(events.includes('timezone'), true);
 });
 
+test('startup sync remounts app content after remote data changes', () => {
+  const events = service.getConfigSyncRefreshEventsForKeys(['theme']);
+
+  assert.equal(events.includes('other'), true);
+  assert.equal(events.includes('configSyncApplied'), true);
+});
+
 test('startup pull is skipped while sync needs a manual decision', () => {
   assert.equal(service.shouldSkipConfigSyncPull({ pausedReason: 'import-remote-decision' }), true);
   assert.equal(service.shouldSkipConfigSyncPull({ status: 'conflict' }), true);

@@ -69,18 +69,34 @@ const useAppSetup = () => {
 const App = () => {
   const [toastDisplayTime, setToastDisplayTime] = useState(2500);
   const [showBackground, setShowBackground] = useState(false);
+  const [configRevision, setConfigRevision] = useState(0);
 
   useEffect(() => {
-    const storedToastDisplayTime = localStorage.getItem('toastDisplayTime');
-    const storedBackground = localStorage.getItem('background');
+    const applyShellSettings = () => {
+      const storedToastDisplayTime = localStorage.getItem('toastDisplayTime');
+      const storedBackground = localStorage.getItem('background');
 
-    if (storedToastDisplayTime) {
-      setToastDisplayTime(parseInt(storedToastDisplayTime, 10));
-    }
+      if (storedToastDisplayTime) {
+        setToastDisplayTime(parseInt(storedToastDisplayTime, 10));
+      }
 
-    if (storedBackground === 'true') {
-      setShowBackground(true);
-    }
+      setShowBackground(storedBackground === 'true');
+    };
+
+    const refreshHandler = (data) => {
+      if (data !== 'configSyncApplied') return;
+
+      loadSettings(true);
+      applyShellSettings();
+      setConfigRevision((revision) => revision + 1);
+    };
+
+    applyShellSettings();
+    EventBus.on('refresh', refreshHandler);
+
+    return () => {
+      EventBus.off('refresh', refreshHandler);
+    };
   }, []);
 
   useAppSetup();
@@ -97,7 +113,7 @@ const App = () => {
 
   return (
     <>
-      {showBackground && <Background />}
+      {showBackground && <Background key={`background-${configRevision}`} />}
       <ToastContainer
         position="top-center"
         autoClose={toastDisplayTime}
@@ -105,7 +121,7 @@ const App = () => {
         closeOnClick
         pauseOnFocusLoss
       />
-      <div id="center">
+      <div id="center" key={`content-${configRevision}`}>
         <Widgets />
         <Modals />
       </div>
