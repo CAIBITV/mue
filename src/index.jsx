@@ -7,6 +7,7 @@ import ErrorBoundary from './ErrorBoundary';
 import { initLanguage } from './bootstrap/initLanguage';
 import { initStorageBridge } from './bootstrap/initStorageBridge';
 import variables from './config/variables';
+import { initConfigSyncService } from './utils/sync/configSyncService';
 
 import './scss/index.scss';
 // the toast css is based on default so we need to import it
@@ -14,6 +15,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 await initStorageBridge();
 initLanguage();
+initConfigSyncService();
 
 Sentry.init({
   dsn: variables.constants.SENTRY_DSN,

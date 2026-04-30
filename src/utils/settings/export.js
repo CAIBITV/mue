@@ -1,5 +1,6 @@
 import { saveFile } from 'utils/saveFile';
 import variables from 'config/variables';
+import { shouldExportSettingKey } from 'utils/sync/configSyncKeys';
 
 /**
  * It takes all the settings from localStorage and saves them to a file
@@ -8,6 +9,7 @@ export function exportSettings() {
   const settings = {};
 
   Object.keys(localStorage).forEach((key) => {
+    if (!shouldExportSettingKey(key)) return;
     settings[key] = localStorage.getItem(key);
   });
 

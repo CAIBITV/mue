@@ -18,43 +18,51 @@ import { Header, Section, Row, Content, Action } from 'components/Layout/Setting
 
 import time_zones from 'features/time/timezones.json';
 import EventBus from 'utils/eventbus';
+import ConfigSync from './ConfigSync';
 
 function AdvancedOptions() {
   const [resetModal, setResetModal] = useState(false);
   const [data, setData] = useState(false);
   const ADVANCED_SECTION = 'modals.main.settings.sections.advanced';
 
-  const Data = () => {
+  const renderData = () => {
     return localStorage.getItem('welcomePreview') !== 'true' ? (
-      <Row final={true}>
-        <Content
-          title={variables.getMessage('modals.main.settings.sections.advanced.data')}
-          subtitle={variables.getMessage('modals.main.settings.sections.advanced.data_description')}
-        />
-        <div className="resetDataButtonsLayout">
-          <Button
-            onClick={() => setResetModal(true)}
-            icon={<ResetIcon />}
-            label={variables.getMessage('modals.main.settings.buttons.reset')}
+      <>
+        <Row>
+          <Content
+            title={variables.getMessage('modals.main.settings.sections.advanced.data')}
+            subtitle={variables.getMessage(
+              'modals.main.settings.sections.advanced.data_description',
+            )}
           />
-          <Button
-            onClick={() => exportSettings()}
-            icon={<ExportIcon />}
-            label={variables.getMessage('modals.main.settings.buttons.export')}
-          />
-          <Button
-            onClick={() => document.getElementById('file-input').click()}
-            icon={<ImportIcon />}
-            label={variables.getMessage('modals.main.settings.buttons.import')}
-          />
-        </div>
-        <FileUpload
-          id="file-input"
-          accept="application/json"
-          type="settings"
-          loadFunction={(e) => importSettings(e)}
-        />
-      </Row>
+          <Action>
+            <div className="resetDataButtonsLayout">
+              <Button
+                onClick={() => setResetModal(true)}
+                icon={<ResetIcon />}
+                label={variables.getMessage('modals.main.settings.buttons.reset')}
+              />
+              <Button
+                onClick={() => exportSettings()}
+                icon={<ExportIcon />}
+                label={variables.getMessage('modals.main.settings.buttons.export')}
+              />
+              <Button
+                onClick={() => document.getElementById('file-input').click()}
+                icon={<ImportIcon />}
+                label={variables.getMessage('modals.main.settings.buttons.import')}
+              />
+            </div>
+            <FileUpload
+              id="file-input"
+              accept="application/json"
+              type="settings"
+              loadFunction={(e) => importSettings(e)}
+            />
+          </Action>
+        </Row>
+        <ConfigSync />
+      </>
     ) : (
       <div className="emptyItems">
         <div className="emptyMessage">
@@ -96,7 +104,7 @@ function AdvancedOptions() {
       {header}
       {data ? (
         <>
-          <Data />
+          {renderData()}
           <Modal
             closeTimeoutMS={100}
             onRequestClose={() => setResetModal(false)}
