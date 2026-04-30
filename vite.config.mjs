@@ -108,6 +108,7 @@ export default defineConfig(({ mode }) => {
     define: {
       __APP_ENV__: JSON.stringify(env.APP_ENV),
       __APP_VERSION__: JSON.stringify(appVersion),
+      __DROPBOX_APP_KEY__: JSON.stringify(env.DROPBOX_APP_KEY || env.VITE_DROPBOX_APP_KEY || ''),
     },
     plugins: [react(), prepareBuilds(), progress()],
     server: { open: true, hmr: { protocol: 'ws', host: 'localhost' } },

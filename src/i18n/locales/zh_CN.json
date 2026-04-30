@@ -167,6 +167,49 @@
               "question": "您想要重置 Mue 的所有设置吗？",
               "title": "警告"
             },
+            "sync": {
+              "app_key": {
+                "placeholder": "Dropbox app key",
+                "subtitle": "请先创建 Dropbox App Folder 应用，然后把 app key 填到这里。本地开发或自托管版本需要配置此项。",
+                "title": "Dropbox app key"
+              },
+              "buttons": {
+                "connect": "连接 Dropbox",
+                "copy_redirect_uri": "复制回调地址",
+                "disconnect": "断开连接",
+                "keep_remote": "保留远端",
+                "open_app_console": "打开 App Console",
+                "overwrite_remote": "覆盖远端",
+                "unavailable": "未配置",
+                "use_local": "使用本地",
+                "use_remote": "使用远端"
+              },
+              "import_modal": {
+                "description": "自动上传已暂停，直到您做出选择。保留远端不会修改 Dropbox 中的文件。",
+                "question": "是否上传刚导入的设置并覆盖 Dropbox 中的副本？",
+                "title": "Dropbox 同步"
+              },
+              "plain_json": "Mue 会在您的 Dropbox 应用文件夹中保存可读的 JSON 设置文件。",
+              "redirect_uri": {
+                "copied": "已复制回调地址。",
+                "subtitle": "把这个完整地址添加到 Dropbox App Console 的 OAuth 2 / Redirect URIs 中。",
+                "title": "OAuth 回调地址",
+                "unavailable": "请先以浏览器扩展方式加载 Mue，才能查看回调地址。"
+              },
+              "states": {
+                "connected": "已连接。Mue 会自动同步允许同步的设置。",
+                "conflict": "本地和 Dropbox 设置都发生了变化。请选择保留哪一份。",
+                "disconnected": "使用 Dropbox 中可读的 JSON 文件在多设备间同步设置。",
+                "error": "同步失败。请检查 Dropbox 连接后重试。",
+                "importing": "正在导入设置。自动上传已暂停。",
+                "loading": "正在检查 Dropbox 同步状态。",
+                "not_configured": "需要先配置 Dropbox app key 才能使用同步。",
+                "paused": "自动上传已暂停，请先选择同步方向。",
+                "syncing": "正在与 Dropbox 同步。",
+                "synced": "Dropbox 同步已是最新。"
+              },
+              "title": "Dropbox 同步"
+            },
             "tab_name": "新标签页名称",
             "tab_name_subtitle": "Change the name of the tab that appears in your browser",
             "timezone": {

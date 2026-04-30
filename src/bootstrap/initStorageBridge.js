@@ -1,4 +1,11 @@
+import { isSyncPrivateKey } from 'utils/sync/configSyncKeys';
+
 const MIGRATION_KEY = '__mue_storage_migrated_v1__';
+const STORAGE_CHANGE_EVENT = 'mue.storage.changed';
+
+const dispatchStorageChange = (detail) => {
+  document.dispatchEvent(new CustomEvent(STORAGE_CHANGE_EVENT, { detail }));
+};
 
 const getExtensionStorage = () => {
   const extensionApi = globalThis.browser || globalThis.chrome;
@@ -33,7 +40,12 @@ const getExtensionStorage = () => {
     getAll: () => promisify(storageArea.get.bind(storageArea), null),
     setMany: (items) => promisify(storageArea.set.bind(storageArea), items),
     remove: (key) => promisify(storageArea.remove.bind(storageArea), key),
-    clear: () => promisify(storageArea.clear.bind(storageArea)),
+    clearPublic: async () => {
+      const entries = await promisify(storageArea.get.bind(storageArea), null);
+      const publicKeys = Object.keys(entries).filter((key) => !isSyncPrivateKey(key));
+      if (publicKeys.length === 0) return;
+      await promisify(storageArea.remove.bind(storageArea), publicKeys);
+    },
     onChanged: extensionApi.storage?.onChanged,
   };
 };
@@ -41,6 +53,7 @@ const getExtensionStorage = () => {
 const snapshotLocalStorage = () => {
   const snapshot = {};
   Object.keys(localStorage).forEach((key) => {
+    if (isSyncPrivateKey(key)) return;
     snapshot[key] = localStorage.getItem(key);
   });
   return snapshot;
@@ -49,7 +62,7 @@ const snapshotLocalStorage = () => {
 const hydrateLocalStorage = (entries, storage) => {
   storage.originalClear();
   Object.entries(entries).forEach(([key, value]) => {
-    if (key === MIGRATION_KEY || value === undefined) return;
+    if (key === MIGRATION_KEY || isSyncPrivateKey(key) || value === undefined) return;
     storage.originalSetItem(key, value);
   });
 };
@@ -68,14 +81,20 @@ const installLocalStorageMirror = (storageBridge) => {
   let isSyncingFromExtension = false;
 
   localStorage.setItem = (key, value) => {
+    if (isSyncPrivateKey(key)) return;
+
     storage.originalSetItem(key, value);
+    dispatchStorageChange({ key, newValue: value });
     if (!isSyncingFromExtension) {
       void storageBridge.setMany({ [key]: value });
     }
   };
 
   localStorage.removeItem = (key) => {
+    if (isSyncPrivateKey(key)) return;
+
     storage.originalRemoveItem(key);
+    dispatchStorageChange({ key });
     if (!isSyncingFromExtension) {
       void storageBridge.remove(key);
     }
@@ -83,8 +102,9 @@ const installLocalStorageMirror = (storageBridge) => {
 
   localStorage.clear = () => {
     storage.originalClear();
+    dispatchStorageChange({ key: null, clear: true });
     if (!isSyncingFromExtension) {
-      void storageBridge.clear();
+      void storageBridge.clearPublic();
     }
   };
 
@@ -94,14 +114,16 @@ const installLocalStorageMirror = (storageBridge) => {
     isSyncingFromExtension = true;
     try {
       Object.entries(changes).forEach(([key, change]) => {
-        if (key === MIGRATION_KEY) return;
+        if (key === MIGRATION_KEY || isSyncPrivateKey(key)) return;
 
         if (change.newValue === undefined) {
           storage.originalRemoveItem(key);
+          dispatchStorageChange({ key });
           return;
         }
 
         storage.originalSetItem(key, change.newValue);
+        dispatchStorageChange({ key, newValue: change.newValue });
       });
     } finally {
       isSyncingFromExtension = false;

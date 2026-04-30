@@ -6,7 +6,8 @@
   "description": "__MSG_description__",
   "version": "0.0.0",
   "homepage_url": "https://muetab.com",
-  "permissions": ["search", "activeTab", "tabs", "storage"],
+  "permissions": ["search", "activeTab", "tabs", "storage", "identity"],
+  "host_permissions": ["https://api.dropboxapi.com/*", "https://content.dropboxapi.com/*"],
   "action": {
     "default_icon": "icons/128x128.png",
     "default_popup": "quicklink-popup.html"

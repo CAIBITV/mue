@@ -8,6 +8,7 @@
 @use 'modules/scrollbars' as *;
 @use 'settings/main' as *;
 @use 'marketplace/main' as *;
+
 // Fixed: Added sass:map module
 
 .Overlay {
@@ -16,7 +17,7 @@
   inset: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgb(0 0 0 / 30%);
   backdrop-filter: blur(2px);
   display: flex;
   justify-content: flex-end;
@@ -31,7 +32,6 @@
   box-shadow: -4px 0 20px rgb(0 0 0 / 30%);
   opacity: 1;
   z-index: -2;
-  transition-timing-function: ease-out;
   border-radius: 0;
   user-select: none;
   overflow-y: auto;
@@ -103,14 +103,11 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-
-  background-color: rgba(1, 1, 1, 0.9);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
   backdrop-filter: blur(16px) saturate(180%);
 
-  // @include themed {
-  //   background-color: t($modal-background);
-  // }
+  @include themed {
+    background-color: t($modal-background);
+  }
 }
 
 .mainModalFrame {
@@ -125,8 +122,7 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden auto;
   scrollbar-gutter: stable;
 }
 

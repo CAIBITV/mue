@@ -167,6 +167,49 @@
               "question": "Do you want to reset Mue?",
               "title": "WARNING"
             },
+            "sync": {
+              "app_key": {
+                "placeholder": "Dropbox app key",
+                "subtitle": "Create a Dropbox App Folder app, then paste its app key here for local or self-hosted builds.",
+                "title": "Dropbox app key"
+              },
+              "buttons": {
+                "connect": "Connect Dropbox",
+                "copy_redirect_uri": "Copy redirect URI",
+                "disconnect": "Disconnect",
+                "keep_remote": "Keep remote",
+                "open_app_console": "Open app console",
+                "overwrite_remote": "Overwrite remote",
+                "unavailable": "Not configured",
+                "use_local": "Use local",
+                "use_remote": "Use remote"
+              },
+              "import_modal": {
+                "description": "Automatic upload is paused until you choose. Keeping remote will leave Dropbox unchanged.",
+                "question": "Upload the imported settings and overwrite the Dropbox copy?",
+                "title": "Dropbox sync"
+              },
+              "plain_json": "Mue stores a readable JSON settings file in your Dropbox app folder.",
+              "redirect_uri": {
+                "copied": "Redirect URI copied.",
+                "subtitle": "Add this exact URI to OAuth 2 / Redirect URIs in the Dropbox App Console.",
+                "title": "OAuth redirect URI",
+                "unavailable": "Load Mue as a browser extension to see the redirect URI."
+              },
+              "states": {
+                "connected": "Connected. Mue will sync allowed settings automatically.",
+                "conflict": "Local and Dropbox settings both changed. Choose which copy to keep.",
+                "disconnected": "Sync allowed settings across devices using a readable Dropbox JSON file.",
+                "error": "Sync failed. Check your Dropbox connection and try again.",
+                "importing": "Importing settings. Automatic upload is paused.",
+                "loading": "Checking Dropbox sync status.",
+                "not_configured": "Dropbox sync needs a Dropbox app key before it can be used.",
+                "paused": "Automatic upload is paused until you choose a sync direction.",
+                "syncing": "Syncing with Dropbox.",
+                "synced": "Dropbox sync is up to date."
+              },
+              "title": "Dropbox sync"
+            },
             "tab_name": "Tab name",
             "tab_name_subtitle": "Change the name of the tab that appears in your browser",
             "timezone": {
