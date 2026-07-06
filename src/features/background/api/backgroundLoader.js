@@ -1,5 +1,9 @@
 import variables from 'config/variables';
 import { supportsAVIF } from './avifSupport';
+import {
+  readReusableBackground,
+  writeCurrentBackground,
+} from './backgroundCache';
 import { getOfflineImage } from './offlineImage';
 import { randomColourStyleBuilder } from './randomColour';
 import videoCheck from './videoCheck';
@@ -66,7 +70,7 @@ export async function fetchAPIImageData(excludedPun = null) {
 /**
  * Gets background data based on current configuration
  */
-export async function getBackgroundData() {
+export async function getBackgroundData({ skipCache = false, forceRefresh = false } = {}) {
   const isOffline =
     localStorage.getItem('offlineMode') === 'true' ||
     localStorage.getItem('showWelcome') === 'true';
@@ -81,6 +85,11 @@ export async function getBackgroundData() {
   }
 
   const type = localStorage.getItem('backgroundType');
+  const reusableBackground = skipCache ? null : readReusableBackground({ backgroundType: type });
+
+  if (reusableBackground) {
+    return reusableBackground;
+  }
 
   switch (type) {
     case 'api':
@@ -90,14 +99,17 @@ export async function getBackgroundData() {
       return getColourBackground();
 
     case 'random_colour':
-    case 'random_gradient':
-      return randomColourStyleBuilder(type);
+    case 'random_gradient': {
+      const data = randomColourStyleBuilder(type);
+      writeCurrentBackground(data);
+      return data;
+    }
 
     case 'custom':
       return getCustomBackground(isOffline);
 
     case 'photo_pack':
-      return getPhotoPackBackground(isOffline);
+      return getPhotoPackBackground(isOffline, forceRefresh);
 
     default:
       return null;
@@ -133,7 +145,7 @@ async function getAPIBackground(isOffline) {
 
   if (!data) return getOfflineImage('api');
 
-  localStorage.setItem('currentBackground', JSON.stringify(data));
+  writeCurrentBackground(data);
 
   // Pre-fetch next 3 images in the background
   const targetQueueSize = 3;
@@ -181,14 +193,14 @@ function getCustomBackground(isOffline) {
     photoInfo: { hidden: true },
   };
 
-  localStorage.setItem('currentBackground', JSON.stringify(data));
+  writeCurrentBackground(data);
   return data;
 }
 
 /**
  * Gets photo pack background
  */
-function getPhotoPackBackground(isOffline) {
+function getPhotoPackBackground(isOffline, forceRefresh = false) {
   if (isOffline) return getOfflineImage('photo_pack');
 
   const photos = parseJSON('installed', []).flatMap((item) =>
@@ -200,12 +212,16 @@ function getPhotoPackBackground(isOffline) {
   const interval = localStorage.getItem('backgroundchange');
   const startTime = Number(localStorage.getItem('backgroundStartTime'));
   const shouldRefresh =
-    !interval || interval === 'refresh' || startTime + Number(interval) < Date.now();
+    forceRefresh ||
+    !interval ||
+    interval === 'refresh' ||
+    startTime + Number(interval) < Date.now();
 
   let index;
   if (shouldRefresh) {
     index = Math.floor(Math.random() * photos.length);
     localStorage.setItem('marketplaceNumber', index);
+    localStorage.setItem('backgroundStartTime', Date.now());
   } else {
     index = Number(localStorage.getItem('marketplaceNumber')) || 0;
   }

@@ -9,9 +9,10 @@ const TRANSITION_DURATION = 1200; // milliseconds
 /**
  * Hook for rendering backgrounds to the DOM
  */
-export function useBackgroundRenderer(backgroundData) {
+export function useBackgroundRenderer(backgroundData, onRenderComplete) {
   const blobRef = useRef(null);
   const abortControllerRef = useRef(null);
+  const transitionTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (backgroundData.video) return;
@@ -24,6 +25,12 @@ export function useBackgroundRenderer(backgroundData) {
       abortControllerRef.current.abort();
     }
     abortControllerRef.current = new AbortController();
+    const currentController = abortControllerRef.current;
+
+    if (transitionTimeoutRef.current) {
+      window.clearTimeout(transitionTimeoutRef.current);
+      transitionTimeoutRef.current = null;
+    }
 
     const applyBackground = async () => {
       if (backgroundData.url) {
@@ -33,6 +40,9 @@ export function useBackgroundRenderer(backgroundData) {
         if (!hasTransition || prefersReducedMotion) {
           element.style.background = `url(${backgroundData.url})`;
           document.querySelector('.photoInformation')?.style.setProperty('display', 'flex');
+          if (!currentController.signal.aborted) {
+            onRenderComplete?.();
+          }
           return;
         }
 
@@ -78,6 +88,10 @@ export function useBackgroundRenderer(backgroundData) {
           img.onerror = resolve;
         });
 
+        if (currentController.signal.aborted) {
+          return;
+        }
+
         // CRITICAL: Reset overlay to invisible FIRST
         overlay.style.transition = 'none';
         overlay.style.opacity = '0';
@@ -102,13 +116,20 @@ export function useBackgroundRenderer(backgroundData) {
         overlay.style.opacity = '1';
 
         // After fade completes, swap to main element and reset overlay
-        setTimeout(() => {
+        transitionTimeoutRef.current = window.setTimeout(() => {
           element.style.backgroundImage = `url(${finalUrl})`;
           overlay.style.opacity = '0';
           overlay.style.backgroundImage = '';
+          transitionTimeoutRef.current = null;
+          if (!currentController.signal.aborted) {
+            onRenderComplete?.();
+          }
         }, TRANSITION_DURATION + 100);
       } else if (backgroundData.style) {
         element.setAttribute('style', backgroundData.style);
+        if (!currentController.signal.aborted) {
+          onRenderComplete?.();
+        }
       }
     };
 
@@ -125,13 +146,18 @@ export function useBackgroundRenderer(backgroundData) {
         abortControllerRef.current.abort();
       }
 
+      if (transitionTimeoutRef.current) {
+        window.clearTimeout(transitionTimeoutRef.current);
+        transitionTimeoutRef.current = null;
+      }
+
       // Remove overlay element to prevent memory leak
       const overlay = document.getElementById('backgroundOverlay');
       if (overlay) {
         overlay.remove();
       }
     };
-  }, [backgroundData.url, backgroundData.style, backgroundData.video, backgroundData.photoInfo]);
+  }, [backgroundData.url, backgroundData.style, backgroundData.video, backgroundData.photoInfo, onRenderComplete]);
 }
 
 /**

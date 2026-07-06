@@ -1,4 +1,5 @@
 import offlineImages from '../offline_images.json';
+import { writeCurrentBackground } from './backgroundCache';
 
 /**
  * Gets a random offline image from the bundled collection
@@ -23,6 +24,6 @@ export function getOfflineImage(type) {
     },
   };
 
-  localStorage.setItem('currentBackground', JSON.stringify(object));
+  writeCurrentBackground(object);
   return object;
 }

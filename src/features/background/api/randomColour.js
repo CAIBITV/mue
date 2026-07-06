@@ -28,7 +28,7 @@ export function randomColourStyleBuilder(type) {
   }
 
   return {
-    type: 'colour',
+    type,
     style,
   };
 }

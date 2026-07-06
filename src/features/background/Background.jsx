@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import BackgroundImage from './components/BackgroundImage';
 import BackgroundVideo from './components/BackgroundVideo';
 
@@ -12,19 +13,29 @@ import './scss/index.scss';
  * Background component - Manages and displays backgrounds
  * Supports: API images, custom images, colors, gradients, videos, and photo packs
  */
-export default function Background() {
+export default function Background({ manualRefreshToken = 0, onManualRefreshStateChange }) {
   const { backgroundData, updateBackground, resetBackground } = useBackgroundState();
-  const { refreshBackground } = useBackgroundLoader(updateBackground, resetBackground);
+  const { refreshBackground } = useBackgroundLoader(updateBackground, resetBackground, {
+    manualRefreshToken,
+    onManualRefreshStateChange,
+  });
   const filterStyle = useBackgroundFilters();
   const overlayFilterStyle = useBackgroundOverlayFilters();
+  const handleRenderComplete = useCallback(() => {
+    onManualRefreshStateChange?.('settling');
+  }, [onManualRefreshStateChange]);
 
-  useBackgroundRenderer(backgroundData);
+  useBackgroundRenderer(backgroundData, handleRenderComplete);
   useBackgroundEvents(backgroundData, refreshBackground);
 
   return (
     <>
       {backgroundData.video ? (
-        <BackgroundVideo url={backgroundData.url} filterStyle={filterStyle} />
+        <BackgroundVideo
+          url={backgroundData.url}
+          filterStyle={filterStyle}
+          onReady={handleRenderComplete}
+        />
       ) : (
         <BackgroundImage
           photoInfo={backgroundData.photoInfo}

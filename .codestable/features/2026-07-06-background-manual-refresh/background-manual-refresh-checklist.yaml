@@ -1,0 +1,103 @@
+feature: 2026-07-06-background-manual-refresh
+created: 2026-07-06
+
+steps:
+  - action: "背景缓存判定：抽出可复用缓存与统一失效 helper，并让启动加载优先消费缓存快照"
+    exit_signal: "同一组背景设置下重复打开新标签页会复用同一张背景，且缓存 helper 的纯逻辑测试可独立通过"
+    status: done
+  - action: "手动刷新控制面：由 App 持有 token/state，把新风车请求从 React 树内传到 Background"
+    exit_signal: "点击风车后 Background 只响应一次 token 变化，风车旋转态与加载收尾一致"
+    status: done
+  - action: "页面右下角风车入口：新增独立悬浮背景刷新按钮，并显式继承现有 refresh 总开关"
+    exit_signal: "refresh=false 时风车隐藏；refresh=true 且背景类型可刷新时出现风车；旧刷新按钮只保留 page / quote 行为"
+    status: done
+  - action: "源配置变更失效：把背景设置入口、排除图片、marketplace 与 config sync apply 接到统一缓存失效 helper"
+    exit_signal: "修改任一背景来源关键配置或远端同步背景配置后，下次打开新标签页不会先显示旧缓存背景"
+    status: done
+  - action: "验证与收尾：补缓存逻辑测试、国际化文案与构建验证证据"
+    exit_signal: "背景缓存测试、同步测试、lint、build 全部通过，且核心手工场景有证据"
+    status: done
+
+checks:
+  - item: "currentBackground 必须从只写不读变成启动时可复用的背景缓存快照"
+    source: 名词契约
+    status: passed
+  - item: "新增背景专用刷新按钮，且不读取或改写 refreshOption"
+    source: 名词契约
+    status: passed
+  - item: "手动背景刷新必须走 App 内部的 token/state 控制面，而不是在 EventBus 上新增订阅 seam"
+    source: 名词契约
+    status: passed
+  - item: "背景类型适用矩阵必须明确区分 api/custom/random、photo_pack、colour、favourite/welcome"
+    source: 流程级约束
+    status: passed
+  - item: "会改变背景来源或候选集合的设置修改必须统一失效 currentBackground 与 imageQueue"
+    source: 流程级约束
+    status: passed
+  - item: "configSyncApplied 涉及背景配置落地时必须进入同一套缓存失效契约"
+    source: 流程级约束
+    status: passed
+  - item: "背景相关 sync key 落地时必须先失效缓存，再触发任何 backgroundrefresh 或重挂载"
+    source: 流程级约束
+    status: passed
+  - item: "App 顶层状态新增手动背景刷新控制面"
+    source: 挂载点
+    status: passed
+  - item: "页面右下角新增悬浮风车按钮挂载点"
+    source: 挂载点
+    status: passed
+  - item: "旧 navbar 刷新按钮移除背景刷新语义"
+    source: 挂载点
+    status: passed
+  - item: "背景启动加载入口新增缓存可复用判定"
+    source: 挂载点
+    status: passed
+  - item: "不实现背景图库/列表页"
+    source: 范围守护
+    status: passed
+  - item: "不改写原有通用刷新按钮及 refreshOption 语义"
+    source: 范围守护
+    status: passed
+  - item: "不把 currentBackground 或 imageQueue 纳入配置同步"
+    source: 范围守护
+    status: passed
+  - item: "连续打开新标签页时，适用类型的背景保持一致，直到用户点击风车"
+    source: 验收场景
+    status: passed
+  - item: "点击风车只刷新背景，不触发整页 reload 或名言刷新"
+    source: 验收场景
+    status: passed
+  - item: "favourite 或 welcome 覆盖生效时风车按钮隐藏"
+    source: 验收场景
+    status: passed
+  - item: "修改背景来源配置或远端同步背景配置后不会先看到旧缓存图"
+    source: 验收场景
+    status: passed
+  - item: "旧刷新按钮只保留 page / quote 两种 refreshOption 行为"
+    source: 验收场景
+    status: passed
+
+dod:
+  commands:
+    - id: CMD-001
+      command: "bun test tests/background-cache.test.mjs"
+      core: true
+      failure_handling: fix-or-block
+    - id: CMD-002
+      command: "bun run test:sync"
+      core: true
+      failure_handling: fix-or-block
+    - id: CMD-003
+      command: "bun run lint"
+      core: true
+      failure_handling: fix-or-block
+    - id: CMD-004
+      command: "bun run build"
+      core: true
+      failure_handling: fix-or-block
+  evidence_required:
+    - command_output
+    - manual_verification
+    - diff_summary
+  cleanliness:
+    debug_output: forbidden

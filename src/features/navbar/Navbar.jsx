@@ -1,5 +1,5 @@
 import variables from 'config/variables';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 import { MdSettings } from 'react-icons/md';
 
@@ -10,23 +10,12 @@ import EventBus from 'utils/eventbus';
 
 import './scss/index.scss';
 
-const getRefreshText = () => {
-  switch (localStorage.getItem('refreshOption')) {
-    case 'background':
-      return variables.getMessage('modals.main.settings.sections.background.title');
-    case 'quote':
-      return variables.getMessage('modals.main.settings.sections.quote.title');
-    case 'quotebackground':
-      return (
-        variables.getMessage('modals.main.settings.sections.quote.title') +
-        ' ' +
-        variables.getMessage('modals.main.settings.sections.background.title')
-      );
-    default:
-      return variables.getMessage(
-        'modals.main.settings.sections.appearance.navbar.refresh_options.page',
-      );
+const normalizeRefreshOption = (option) => {
+  if (option === 'background' || option === 'quotebackground') {
+    return 'page';
   }
+
+  return option || 'page';
 };
 
 const getZoomFontSize = () => {
@@ -34,14 +23,13 @@ const getZoomFontSize = () => {
 };
 
 const Navbar = ({ openModal }) => {
-  const navbarContainer = useRef();
   const [classList] = useState(
     localStorage.getItem('widgetStyle') === 'legacy' ? 'navbar old' : 'navbar new',
   );
-  const [refreshText, setRefreshText] = useState(getRefreshText());
   const [refreshEnabled, setRefreshEnabled] = useState(localStorage.getItem('refresh'));
-  const [refreshOption, setRefreshOption] = useState(localStorage.getItem('refreshOption') || '');
-  const [appsOpen, setAppsOpen] = useState(false);
+  const [refreshOption, setRefreshOption] = useState(
+    normalizeRefreshOption(localStorage.getItem('refreshOption')),
+  );
   const [zoomFontSize, setZoomFontSize] = useState(getZoomFontSize());
   const [navbarHover, setNavbarHover] = useState(localStorage.getItem('navbarHover') === 'true');
   const [viewEnabled, setViewEnabled] = useState(localStorage.getItem('view') === 'true');
@@ -53,13 +41,12 @@ const Navbar = ({ openModal }) => {
     const handleRefresh = (data) => {
       if (data === 'navbar' || data === 'background') {
         setRefreshEnabled(localStorage.getItem('refresh'));
-        setRefreshOption(localStorage.getItem('refreshOption'));
+        setRefreshOption(normalizeRefreshOption(localStorage.getItem('refreshOption')));
         setNavbarHover(localStorage.getItem('navbarHover') === 'true');
         setViewEnabled(localStorage.getItem('view') === 'true');
         setNotesEnabled(localStorage.getItem('notesEnabled') === 'true');
         setTodoEnabled(localStorage.getItem('todoEnabled') === 'true');
         setAppsEnabled(localStorage.getItem('appsEnabled') === 'true');
-        setRefreshText(getRefreshText());
         setZoomFontSize(getZoomFontSize());
       }
     };
@@ -69,20 +56,6 @@ const Navbar = ({ openModal }) => {
       EventBus.off('refresh');
     };
   }, []);
-
-  const refresh = () => {
-    switch (refreshOption) {
-      case 'background':
-        return EventBus.emit('refresh', 'backgroundrefresh');
-      case 'quote':
-        return EventBus.emit('refresh', 'quoterefresh');
-      case 'quotebackground':
-        EventBus.emit('refresh', 'quoterefresh');
-        return EventBus.emit('refresh', 'backgroundrefresh');
-      default:
-        window.location.reload();
-    }
-  };
 
   const backgroundEnabled = localStorage.getItem('background') === 'true';
 

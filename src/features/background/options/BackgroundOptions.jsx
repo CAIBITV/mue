@@ -13,7 +13,16 @@ import EffectsSettings from './sections/EffectsSettings';
 import SourceSection from './sections/SourceSection';
 import NavigationCard from './sections/NavigationCard';
 
+import { invalidateBackgroundCache } from '../api/backgroundCache';
 import { getBackgroundOptionItems } from './optionTypes';
+
+const getInitialBackgroundCategories = () => {
+  if (navigator.onLine === false || localStorage.getItem('offlineMode') === 'true') {
+    return [variables.getMessage('modals.update.offline.title')];
+  }
+
+  return [variables.getMessage('modals.main.loading')];
+};
 
 const BackgroundOptions = memo(() => {
   const [backgroundType, setBackgroundType] = useState(
@@ -22,9 +31,7 @@ const BackgroundOptions = memo(() => {
   const [backgroundFilter, setBackgroundFilter] = useState(
     localStorage.getItem('backgroundFilter') || 'none',
   );
-  const [backgroundCategories, setBackgroundCategories] = useState([
-    variables.getMessage('modals.main.loading'),
-  ]);
+  const [backgroundCategories, setBackgroundCategories] = useState(getInitialBackgroundCategories);
   const [backgroundCategoriesOG, setBackgroundCategoriesOG] = useState([]);
   const [backgroundAPI, setBackgroundAPI] = useState(localStorage.getItem('backgroundAPI') || 'mue');
   const [marketplaceEnabled] = useState(localStorage.getItem('photo_packs'));
@@ -57,8 +64,7 @@ const BackgroundOptions = memo(() => {
 
   const updateAPI = useCallback((e) => {
     localStorage.setItem('nextImage', null);
-    // Clear prefetch queue when API changes to prevent showing cached images from old API
-    localStorage.removeItem('imageQueue');
+    invalidateBackgroundCache();
     if (e === 'mue') {
       setBackgroundCategories(backgroundCategoriesOG);
       setBackgroundAPI('mue');
@@ -77,7 +83,6 @@ const BackgroundOptions = memo(() => {
     controllerRef.current = new AbortController();
 
     if (navigator.onLine === false || localStorage.getItem('offlineMode') === 'true') {
-      setBackgroundCategories([variables.getMessage('modals.update.offline.title')]);
       return;
     }
 
@@ -180,8 +185,7 @@ const BackgroundOptions = memo(() => {
                 label={variables.getMessage('modals.main.settings.sections.background.type.title')}
                 name="backgroundType"
                 onChange={(value) => {
-                  // Clear prefetch queue when changing background type
-                  localStorage.removeItem('imageQueue');
+                  invalidateBackgroundCache();
                   setBackgroundType(value);
                 }}
                 category="background"
@@ -215,8 +219,7 @@ const BackgroundOptions = memo(() => {
             backgroundType={backgroundType}
             marketplaceEnabled={marketplaceEnabled}
             onTypeChange={(value) => {
-              // Clear prefetch queue when changing background type
-              localStorage.removeItem('imageQueue');
+              invalidateBackgroundCache();
               setBackgroundType(value);
             }}
           />

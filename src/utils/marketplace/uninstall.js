@@ -1,4 +1,5 @@
 import EventBus from 'utils/eventbus';
+import { invalidateBackgroundCache } from 'features/background/api/backgroundCache';
 
 // todo: relocate this function
 function showReminder() {
@@ -63,8 +64,7 @@ export function uninstall(type, name) {
         localStorage.removeItem('photo_packs');
       }
       localStorage.removeItem('backgroundchange');
-      // Clear image queue to ensure fresh background loads
-      localStorage.removeItem('imageQueue');
+      invalidateBackgroundCache();
       // Set refresh event to emit after installed data is saved
       refreshEvent = 'marketplacebackgrounduninstall';
       break;

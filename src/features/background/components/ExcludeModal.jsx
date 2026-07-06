@@ -1,6 +1,7 @@
 import variables from 'config/variables';
 import { memo } from 'react';
 import EventBus from 'utils/eventbus';
+import { invalidateBackgroundCache } from '../api/backgroundCache';
 import { Tooltip, Button } from 'components/Elements';
 
 import { MdClose, MdDone } from 'react-icons/md';
@@ -11,6 +12,7 @@ function ExcludeModal({ modalClose, info }) {
     backgroundExclude.push(info.pun);
     backgroundExclude = JSON.stringify(backgroundExclude);
     localStorage.setItem('backgroundExclude', backgroundExclude);
+    invalidateBackgroundCache();
     EventBus.emit('refresh', 'background');
     modalClose();
   };

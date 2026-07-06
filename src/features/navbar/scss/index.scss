@@ -8,7 +8,7 @@
   display: flex;
   flex-flow: row;
   gap: 10px;
-  animation: fadeIn 2s;
+  animation: fade-in 2s;
 
   button {
     -webkit-font-smoothing: subpixel-antialiased;
@@ -19,7 +19,7 @@
     // transition: 0.2s ease;
     margin-top: 0;
 
-    @keyframes fadeIn {
+    @keyframes fade-in {
       0% {
         opacity: 0;
       }
@@ -152,4 +152,46 @@
       }
     }
   }
+}
+
+.backgroundRefreshFloating {
+  position: fixed;
+  right: 26px;
+  bottom: 26px;
+  z-index: 9998;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition:
+    transform 0.22s ease,
+    opacity 0.22s ease,
+    filter 0.22s ease;
+
+  &:hover {
+    transform: scale(1.08);
+    filter: drop-shadow(0 10px 26px rgb(26 44 94 / 30%));
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.96;
+  }
+}
+
+.backgroundRefreshFloating-dev {
+  bottom: 92px;
+}
+
+.backgroundRefreshIcon {
+  font-size: 2.5rem;
+  stroke-width: 1.8;
+  will-change: transform;
+  filter:
+    drop-shadow(0 0 0.65rem rgb(0 0 0 / 22%))
+    drop-shadow(0 0.35rem 1rem rgb(28 53 108 / 28%));
 }

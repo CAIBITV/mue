@@ -1,6 +1,6 @@
 import variables from 'config/variables';
 
-import { useState, memo } from 'react';
+import { useState, useEffect, memo } from 'react';
 
 import { MdAssignment, MdCropFree, MdRefresh, MdChecklist, MdOutlineApps } from 'react-icons/md';
 
@@ -12,15 +12,34 @@ import { Header } from 'components/Layout/Settings';
 
 import AppsOptions from './AppsOptions';
 
+const normalizeRefreshOption = (option) => {
+  if (option === 'background' || option === 'quotebackground') {
+    return 'page';
+  }
+
+  return option || 'page';
+};
+
 function NavbarOptions() {
   const [showRefreshOptions, setShowRefreshOptions] = useState(
     localStorage.getItem('refresh') === 'true',
+  );
+  const [refreshOptionValue, setRefreshOptionValue] = useState(
+    normalizeRefreshOption(localStorage.getItem('refreshOption')),
   );
   const [appsEnabled, setAppsEnabled] = useState(
     localStorage.getItem('appsEnabled') === 'true' || false,
   );
 
   const NAVBAR_SECTION = 'modals.main.settings.sections.appearance.navbar';
+
+  useEffect(() => {
+    const normalized = normalizeRefreshOption(localStorage.getItem('refreshOption'));
+    if (normalized !== localStorage.getItem('refreshOption')) {
+      localStorage.setItem('refreshOption', normalized);
+    }
+    setRefreshOptionValue(normalized);
+  }, []);
 
   const AdditionalSettings = () => {
     return (
@@ -132,6 +151,8 @@ function NavbarOptions() {
           <Dropdown
             name="refreshOption"
             category="navbar"
+            value={refreshOptionValue}
+            onChange={(value) => setRefreshOptionValue(value)}
             items={[
               {
                 value: 'page',
@@ -140,19 +161,8 @@ function NavbarOptions() {
                 ),
               },
               {
-                value: 'background',
-                text: variables.getMessage('modals.main.settings.sections.background.title'),
-              },
-              {
                 value: 'quote',
                 text: variables.getMessage('modals.main.settings.sections.quote.title'),
-              },
-              {
-                value: 'quotebackground',
-                text:
-                  variables.getMessage('modals.main.settings.sections.quote.title') +
-                  ' + ' +
-                  variables.getMessage('modals.main.settings.sections.background.title'),
               },
             ]}
           />

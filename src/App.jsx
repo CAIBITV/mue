@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ToastContainer } from 'react-toastify';
 import Background from 'features/background/Background';
+import { BackgroundRefresh } from 'features/navbar/components';
 import Widgets from 'features/misc/views/Widgets';
 import Modals from 'features/misc/modals/Modals';
 import { loadSettings, moveSettings } from 'utils/settings';
 import EventBus from 'utils/eventbus';
 import variables from 'config/variables';
+const BACKGROUND_REFRESH_SETTLE_MS = 420;
 
 const useAppSetup = () => {
   useEffect(() => {
@@ -70,6 +72,10 @@ const App = () => {
   const [toastDisplayTime, setToastDisplayTime] = useState(2500);
   const [showBackground, setShowBackground] = useState(false);
   const [configRevision, setConfigRevision] = useState(0);
+  const [manualBackgroundRefreshToken, setManualBackgroundRefreshToken] = useState(0);
+  const [manualBackgroundRefreshState, setManualBackgroundRefreshState] = useState('idle');
+  const manualBackgroundRefreshTimeoutRef = useRef(null);
+  const manualBackgroundRefreshStateRef = useRef('idle');
 
   useEffect(() => {
     const applyShellSettings = () => {
@@ -88,6 +94,11 @@ const App = () => {
 
       loadSettings(true);
       applyShellSettings();
+      if (manualBackgroundRefreshTimeoutRef.current) {
+        window.clearTimeout(manualBackgroundRefreshTimeoutRef.current);
+        manualBackgroundRefreshTimeoutRef.current = null;
+      }
+      setManualBackgroundRefreshState('idle');
       setConfigRevision((revision) => revision + 1);
     };
 
@@ -96,10 +107,50 @@ const App = () => {
 
     return () => {
       EventBus.off('refresh', refreshHandler);
+      if (manualBackgroundRefreshTimeoutRef.current) {
+        window.clearTimeout(manualBackgroundRefreshTimeoutRef.current);
+      }
     };
   }, []);
 
   useAppSetup();
+
+  useEffect(() => {
+    manualBackgroundRefreshStateRef.current = manualBackgroundRefreshState;
+  }, [manualBackgroundRefreshState]);
+
+  const handleManualBackgroundRefreshStateChange = useCallback((nextState) => {
+    if (
+      nextState === 'settling' &&
+      manualBackgroundRefreshStateRef.current !== 'loading' &&
+      manualBackgroundRefreshStateRef.current !== 'settling'
+    ) {
+      return;
+    }
+
+    if (manualBackgroundRefreshTimeoutRef.current) {
+      window.clearTimeout(manualBackgroundRefreshTimeoutRef.current);
+      manualBackgroundRefreshTimeoutRef.current = null;
+    }
+
+    if (nextState !== 'settling') {
+      setManualBackgroundRefreshState(nextState);
+      return;
+    }
+
+    setManualBackgroundRefreshState('settling');
+    manualBackgroundRefreshTimeoutRef.current = window.setTimeout(() => {
+      setManualBackgroundRefreshState('idle');
+      manualBackgroundRefreshTimeoutRef.current = null;
+    }, BACKGROUND_REFRESH_SETTLE_MS);
+  }, []);
+
+  const requestManualBackgroundRefresh = useCallback(() => {
+    if (manualBackgroundRefreshState !== 'idle') return;
+
+    setManualBackgroundRefreshState('loading');
+    setManualBackgroundRefreshToken((token) => token + 1);
+  }, [manualBackgroundRefreshState]);
 
   const openQuicklinkPreview = () => {
     const previewWindow = window.open(
@@ -113,7 +164,13 @@ const App = () => {
 
   return (
     <>
-      {showBackground && <Background key={`background-${configRevision}`} />}
+      {showBackground && (
+        <Background
+          key={`background-${configRevision}`}
+          manualRefreshToken={manualBackgroundRefreshToken}
+          onManualRefreshStateChange={handleManualBackgroundRefreshStateChange}
+        />
+      )}
       <ToastContainer
         position="top-center"
         autoClose={toastDisplayTime}
@@ -121,9 +178,17 @@ const App = () => {
         closeOnClick
         pauseOnFocusLoss
       />
+      <BackgroundRefresh
+        phase={manualBackgroundRefreshState}
+        onClick={requestManualBackgroundRefresh}
+        previewOffset={import.meta.env.DEV}
+      />
       <div id="center" key={`content-${configRevision}`}>
         <Widgets />
-        <Modals />
+        <Modals
+          manualBackgroundRefreshState={manualBackgroundRefreshState}
+          requestManualBackgroundRefresh={requestManualBackgroundRefresh}
+        />
       </div>
       {import.meta.env.DEV && (
         <button
