@@ -4,14 +4,24 @@ import { MdRefresh } from 'react-icons/md';
 import { Tooltip } from 'components/Elements';
 import EventBus from 'utils/eventbus';
 
+const normalizeRefreshOption = (option) => {
+  if (option === 'background' || option === 'quotebackground') {
+    return 'page';
+  }
+
+  return option || 'page';
+};
+
 function Refresh() {
   const [refreshText, setRefreshText] = useState('');
-  const [refreshOption, setRefreshOption] = useState(localStorage.getItem('refreshOption') || '');
+  const [refreshOption, setRefreshOption] = useState(
+    normalizeRefreshOption(localStorage.getItem('refreshOption')),
+  );
 
   useEffect(() => {
     EventBus.on('refresh', (data) => {
       if (data === 'navbar' || data === 'background') {
-        setRefreshOption(localStorage.getItem('refreshOption'));
+        setRefreshOption(normalizeRefreshOption(localStorage.getItem('refreshOption')));
         updateRefreshText();
       }
     });
@@ -21,24 +31,9 @@ function Refresh() {
 
   function updateRefreshText() {
     let text;
-    switch (localStorage.getItem('refreshOption')) {
-      case 'background':
-        text = variables.getMessage('modals.main.settings.sections.background.title');
-        break;
+    switch (normalizeRefreshOption(localStorage.getItem('refreshOption'))) {
       case 'quote':
         text = variables.getMessage('modals.main.settings.sections.quote.title');
-        break;
-      case 'quotebackground':
-        text = new Intl.ListFormat(
-          localStorage.getItem('language')?.replace(/_/gm, '-') || 'en-US',
-          {
-            style: 'long',
-            type: 'conjunction',
-          },
-        ).format([
-          variables.getMessage('modals.main.settings.sections.quote.title'),
-          variables.getMessage('modals.main.settings.sections.background.title'),
-        ]);
         break;
       default:
         text = variables.getMessage(
@@ -52,13 +47,8 @@ function Refresh() {
 
   function refresh() {
     switch (refreshOption) {
-      case 'background':
-        return EventBus.emit('refresh', 'backgroundrefresh');
       case 'quote':
         return EventBus.emit('refresh', 'quoterefresh');
-      case 'quotebackground':
-        EventBus.emit('refresh', 'quoterefresh');
-        return EventBus.emit('refresh', 'backgroundrefresh');
       default:
         window.location.reload();
     }

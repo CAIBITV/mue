@@ -2,6 +2,7 @@ import variables from 'config/variables';
 import { Dropdown, Radio, Text, ChipSelect } from 'components/Form/Settings';
 import { Row, Content, Action } from 'components/Layout/Settings/Item';
 import { APIQualityOptions } from '../optionTypes';
+import { invalidateBackgroundCache } from '../../api/backgroundCache';
 
 const APISettings = ({ backgroundAPI, backgroundCategories, onUpdateAPI }) => {
   return (
@@ -35,8 +36,7 @@ const APISettings = ({ backgroundAPI, backgroundCategories, onUpdateAPI }) => {
               options={backgroundCategories}
               name="apiCategories"
               onChange={() => {
-                // Clear prefetch queue when categories change
-                localStorage.removeItem('imageQueue');
+                invalidateBackgroundCache();
               }}
             />
           )}
@@ -48,8 +48,7 @@ const APISettings = ({ backgroundAPI, backgroundCategories, onUpdateAPI }) => {
             element=".other"
             items={APIQualityOptions}
             onChange={() => {
-              // Clear prefetch queue when quality changes
-              localStorage.removeItem('imageQueue');
+              invalidateBackgroundCache();
             }}
           />
           <Radio
@@ -90,8 +89,7 @@ const APISettings = ({ backgroundAPI, backgroundCategories, onUpdateAPI }) => {
               category="background"
               element="#backgroundImage"
               onChange={() => {
-                // Clear prefetch queue when Unsplash collections change
-                localStorage.removeItem('imageQueue');
+                invalidateBackgroundCache();
               }}
             />
           </Action>

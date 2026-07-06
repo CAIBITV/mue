@@ -9,8 +9,8 @@ import {
   MdOutlineFileUpload,
   MdFolder,
 } from 'react-icons/md';
-import EventBus from 'utils/eventbus';
 import { compressAccurately, filetoDataURL } from 'image-conversion';
+import { invalidateBackgroundCache } from '../api/backgroundCache';
 import videoCheck from '../api/videoCheck';
 
 import { Checkbox, FileUpload } from 'components/Form/Settings';
@@ -23,7 +23,7 @@ const getCustom = () => {
   let data;
   try {
     data = JSON.parse(localStorage.getItem('customBackground'));
-  } catch (e) {
+  } catch {
     data = [localStorage.getItem('customBackground')];
   }
   return data;
@@ -36,13 +36,6 @@ const CustomSettings = memo(() => {
   const [currentBackgroundIndex, setCurrentBackgroundIndex] = useState(0);
   const customDnd = useRef(null);
 
-  const resetCustom = useCallback(() => {
-    localStorage.setItem('customBackground', '[]');
-    setCustomBackground([]);
-    toast(variables.getMessage('toasts.reset'));
-    EventBus.emit('refresh', 'background');
-  }, []);
-
   const handleCustomBackground = useCallback((e, index) => {
     const result = e.target.result;
 
@@ -50,6 +43,7 @@ const CustomSettings = memo(() => {
       const updated = [...prev];
       updated[index || updated.length] = result;
       localStorage.setItem('customBackground', JSON.stringify(updated));
+      invalidateBackgroundCache();
       document.querySelector('.reminder-info').style.display = 'flex';
       localStorage.setItem('showReminder', true);
       return updated;
@@ -65,6 +59,7 @@ const CustomSettings = memo(() => {
         updated.splice(index, 1);
       }
       localStorage.setItem('customBackground', JSON.stringify(updated));
+      invalidateBackgroundCache();
       document.querySelector('.reminder-info').style.display = 'flex';
       localStorage.setItem('showReminder', true);
       return updated;

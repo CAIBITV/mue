@@ -3,3 +3,4 @@ export * from './Notes';
 export * from './Todo';
 export * from './Refresh';
 export * from './Maximise';
+export * from './BackgroundRefresh';

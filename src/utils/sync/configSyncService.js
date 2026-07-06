@@ -1,4 +1,5 @@
 import EventBus from 'utils/eventbus';
+import { invalidateBackgroundCache } from 'features/background/api/backgroundCache';
 import {
   canonicalizeSyncData,
   createConfigSyncData,
@@ -164,9 +165,16 @@ export const shouldSkipConfigSyncPull = (state = {}, { force = false } = {}) =>
 
 const applySyncDataToLocalStorage = (data) => {
   const changedKeys = getChangedSyncKeys(data);
+  const shouldInvalidateBackground = changedKeys.some((key) =>
+    (SYNC_REFRESH_EVENTS_BY_KEY[key] || []).includes('backgroundrefresh'),
+  );
 
   applyingRemoteData = true;
   try {
+    if (shouldInvalidateBackground) {
+      invalidateBackgroundCache();
+    }
+
     Object.entries(filterConfigSyncData(data)).forEach(([key, value]) => {
       localStorage.setItem(key, value);
     });

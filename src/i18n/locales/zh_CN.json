@@ -773,7 +773,8 @@
         "title": "计划任务"
       },
       "tooltips": {
-        "refresh": "刷新"
+        "refresh": "刷新",
+        "background_refresh": "刷新背景"
       }
     },
     "quicklinks": {

@@ -1,4 +1,5 @@
 import EventBus from 'utils/eventbus';
+import { invalidateBackgroundCache } from 'features/background/api/backgroundCache';
 
 // todo: relocate this function
 function showReminder() {
@@ -6,7 +7,7 @@ function showReminder() {
   localStorage.setItem('showReminder', true);
 }
 
-export function install(type, input, sideload, collection) {
+export function install(type, input, sideload, _collection) {
   let refreshEvent = null;
 
   switch (type) {
@@ -38,8 +39,7 @@ export function install(type, input, sideload, collection) {
       }
       localStorage.setItem('backgroundType', 'photo_pack');
       localStorage.removeItem('backgroundchange');
-      // Clear image queue to ensure fresh background loads
-      localStorage.removeItem('imageQueue');
+      invalidateBackgroundCache();
       // Set refresh event to emit after installed data is saved
       refreshEvent = 'backgroundrefresh';
       break;

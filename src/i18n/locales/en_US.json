@@ -717,7 +717,8 @@
         "title": "To-do"
       },
       "tooltips": {
-        "refresh": "Refresh"
+        "refresh": "Refresh",
+        "background_refresh": "Refresh background"
       }
     },
     "quicklinks": {

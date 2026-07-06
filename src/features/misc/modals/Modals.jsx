@@ -12,28 +12,26 @@ import { parseDeepLink, shouldAutoOpenModal } from 'utils/deepLinking';
 import Welcome from 'features/welcome/Welcome';
 
 const Modals = () => {
-  const [mainModal, setMainModal] = useState(false);
-  const [updateModal, setUpdateModal] = useState(false);
-  const [welcomeModal, setWelcomeModal] = useState(false);
-  const [appsModal, setAppsModal] = useState(false);
+  const initialDeepLinkData = shouldAutoOpenModal() ? parseDeepLink() : null;
+  const [mainModal, setMainModal] = useState(Boolean(initialDeepLinkData));
+  const [welcomeModal, setWelcomeModal] = useState(
+    Boolean(
+      !initialDeepLinkData &&
+        localStorage.getItem('showWelcome') === 'true' &&
+        window.location.search !== '?nointro=true',
+    ),
+  );
   const [preview, setPreview] = useState(false);
-  const [deepLinkData, setDeepLinkData] = useState(null);
+  const [deepLinkData] = useState(initialDeepLinkData);
 
   useEffect(() => {
     // Check for deep link first (has priority)
-    if (shouldAutoOpenModal()) {
-      const linkData = parseDeepLink();
-      setMainModal(true);
-      setDeepLinkData(linkData);
-      variables.stats.postEvent('modal', `Opened via deep link: ${linkData.tab}`);
+    if (initialDeepLinkData) {
+      variables.stats.postEvent('modal', `Opened via deep link: ${initialDeepLinkData.tab}`);
       return;
     }
 
-    if (
-      localStorage.getItem('showWelcome') === 'true' &&
-      window.location.search !== '?nointro=true'
-    ) {
-      setWelcomeModal(true);
+    if (welcomeModal) {
       variables.stats.postEvent('modal', 'Opened welcome');
     }
 
@@ -47,7 +45,7 @@ const Modals = () => {
 
     // hide refresh reminder once the user has refreshed the page
     localStorage.setItem('showReminder', false);
-  }, []);
+  }, [initialDeepLinkData, welcomeModal]);
 
   const closeWelcome = () => {
     localStorage.setItem('showWelcome', false);
@@ -68,9 +66,7 @@ const Modals = () => {
   const toggleModal = (type, action) => {
     const modalSetters = {
       mainModal: setMainModal,
-      updateModal: setUpdateModal,
       welcomeModal: setWelcomeModal,
-      appsModal: setAppsModal,
     };
 
     if (modalSetters[type]) {
@@ -84,7 +80,9 @@ const Modals = () => {
 
   return (
     <>
-      {welcomeModal === false && <Navbar openModal={(modal) => toggleModal(modal, true)} />}
+      {welcomeModal === false && (
+        <Navbar openModal={(modal) => toggleModal(modal, true)} />
+      )}
       <Modal
         closeTimeoutMS={300}
         id="modal"

@@ -1,6 +1,7 @@
 import variables from 'config/variables';
 import { memo, useState, useCallback, useEffect, useRef } from 'react';
 import { MdStar, MdStarBorder } from 'react-icons/md';
+import EventBus from 'utils/eventbus';
 
 const Favourite = memo(({ tooltipText, credit, offline, pun }) => {
   const getInitialButton = () => {
@@ -81,6 +82,8 @@ const Favourite = memo(({ tooltipText, credit, offline, pun }) => {
       tooltipText(variables.getMessage('widgets.quote.unfavourite'));
       variables.stats.postEvent('feature', 'Background unfavourite');
     }
+
+    EventBus.emit('refresh', 'navbar');
   }, [tooltipText, credit, offline, pun]);
 
   const updateTooltip = useCallback(() => {
