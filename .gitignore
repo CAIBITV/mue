@@ -24,3 +24,7 @@ CLAUDE.md
 AGENTS.md
 .claude
 .serena
+.code-review-graph
+.codegraph
+.agents
+skills-lock.json
